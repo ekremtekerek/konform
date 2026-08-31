@@ -8,17 +8,28 @@ cd "$(dirname "$0")/.."
 # shellcheck disable=SC1091
 set -a; . ./.env; set +a
 
-wp() { docker compose run --rm -T wpcli "$@"; }
+# DIKKAT: wordpress:cli imaji komutu dogrudan exec eder, 'wp' onekini kendisi
+# eklemez. Ayni sey composer servisi icin de gecerli.
+wp() { docker compose run --rm -T wpcli wp "$@"; }
 
 echo "==> Konteynerler baslatiliyor"
 docker compose up -d
 
 echo "==> WordPress hazir olmasi bekleniyor"
-until wp core is-installed --allow-root >/dev/null 2>&1 || wp core version >/dev/null 2>&1; do
+tries=0
+until wp core version >/dev/null 2>&1; do
+  tries=$(( tries + 1 ))
+  if [ "$tries" -ge 30 ]; then
+    echo "HATA: WordPress 60 saniyede yanit vermedi." >&2
+    echo "      docker compose logs wordpress  ile inceleyin." >&2
+    exit 1
+  fi
   sleep 2
 done
 
-if ! wp core is-installed >/dev/null 2>&1; then
+if wp core is-installed >/dev/null 2>&1; then
+  echo "==> WordPress zaten kurulu, atlaniyor"
+else
   echo "==> WordPress kuruluyor"
   wp core install \
     --url="${WP_URL}" \
@@ -30,20 +41,26 @@ if ! wp core is-installed >/dev/null 2>&1; then
 fi
 
 echo "==> Dil paketi: ${WP_LOCALE}"
-wp language core install "${WP_LOCALE}" || true
-wp site switch-language "${WP_LOCALE}" || true
+wp language core install "${WP_LOCALE}" >/dev/null 2>&1 || true
+wp site switch-language "${WP_LOCALE}" >/dev/null 2>&1 || true
 
-echo "==> WooCommerce kuruluyor"
-wp plugin install woocommerce --activate
+if wp plugin is-installed woocommerce >/dev/null 2>&1; then
+  echo "==> WooCommerce zaten kurulu"
+  wp plugin activate woocommerce >/dev/null 2>&1 || true
+else
+  echo "==> WooCommerce kuruluyor (biraz surebilir)"
+  wp plugin install woocommerce --activate
+fi
 
 echo "==> Magaza ulkesi: ${WC_STORE_COUNTRY} (regulasyon profili)"
-wp option update woocommerce_default_country "${WC_STORE_COUNTRY}"
-wp option update woocommerce_currency EUR
-wp option update woocommerce_calc_taxes yes
+wp option update woocommerce_default_country "${WC_STORE_COUNTRY}" >/dev/null
+wp option update woocommerce_currency EUR >/dev/null
+wp option update woocommerce_calc_taxes yes >/dev/null
 
 echo "==> Konform etkinlestiriliyor"
-wp plugin activate konform || echo "   (henuz etkinlestirilemedi - normal)"
+wp plugin activate konform || echo "   UYARI: etkinlestirilemedi"
 
 echo
 echo "Hazir:  ${WP_URL}/wp-admin"
 echo "Giris:  ${WP_ADMIN_USER} / ${WP_ADMIN_PASSWORD}"
+wp plugin list --fields=name,status,version 2>/dev/null || true

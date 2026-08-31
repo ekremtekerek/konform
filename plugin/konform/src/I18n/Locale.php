@@ -259,10 +259,14 @@ final class Locale {
 	}
 
 	/**
-	 * Locale'in gerçekten kurulu olduğunu doğrular.
+	 * Locale'in kullanılabilir olduğunu garantiler; gerekirse dil paketini kurar.
 	 *
-	 * Kurulu olmayan bir locale'e geçmek sessizce İngilizce üretir; bunu
-	 * baştan yakalayıp mağaza varsayılanına düşmek daha öngörülebilirdir.
+	 * Kurulu olmayan bir locale'e geçmek sessizce mağazanın diline düşer — yani
+	 * Fransız alıcı Türkçe fatura alır. Uyumluluk ürününde bu kabul edilemez,
+	 * bu yüzden eksik dil paketi talep anında indirilir.
+	 *
+	 * Ağ çağrısı içerir. Fatura üretimi Action Scheduler kuyruğunda arka planda
+	 * çalıştığı için bu kabul edilebilir; istek içinde çağrılmamalıdır.
 	 *
 	 * @param string $locale Aday locale.
 	 * @return string Kullanılabilir locale.
@@ -280,6 +284,54 @@ final class Locale {
 			return $locale;
 		}
 
+		if ( self::install_language_pack( $locale ) ) {
+			return $locale;
+		}
+
 		return \get_locale();
+	}
+
+	/**
+	 * Eksik dil paketini WordPress.org'dan indirir.
+	 *
+	 * Başarısız denemeler bir gün boyunca hatırlanır; aksi hâlde her fatura
+	 * üretiminde yeniden ağ çağrısı yapılır.
+	 *
+	 * @param string $locale Kurulacak locale.
+	 * @return bool Kurulduysa true.
+	 */
+	private static function install_language_pack( string $locale ): bool {
+		$failed = \get_site_transient( 'konform_locale_install_failed' );
+		$failed = \is_array( $failed ) ? $failed : array();
+
+		if ( isset( $failed[ $locale ] ) ) {
+			return false;
+		}
+
+		if ( ! \function_exists( 'wp_download_language_pack' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+		}
+
+		$installed = \wp_download_language_pack( $locale );
+
+		if ( \is_string( $installed ) && '' !== $installed ) {
+			return true;
+		}
+
+		$failed[ $locale ] = \time();
+		\set_site_transient( 'konform_locale_install_failed', $failed, DAY_IN_SECONDS );
+
+		/**
+		 * Belge dili için dil paketi kurulamadı.
+		 *
+		 * Fatura mağazanın dilinde üretilecek. Uyumluluk raporlaması bu kancaya
+		 * bağlanabilir.
+		 *
+		 * @param string $locale Kurulamayan locale.
+		 */
+		\do_action( 'konform/language_pack_failed', $locale );
+
+		return false;
 	}
 }

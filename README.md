@@ -53,9 +53,9 @@ Kurulum bitince: <http://localhost:8080/wp-admin> — `admin` / `admin`
 docker compose up -d
 docker compose down
 
-# WP-CLI
-docker compose run --rm wpcli plugin list
-docker compose run --rm wpcli option get woocommerce_default_country
+# WP-CLI  (servis adindan sonra 'wp' tekrar yazilir)
+docker compose run --rm wpcli wp plugin list
+docker compose run --rm wpcli wp option get woocommerce_default_country
 
 # Composer  (dikkat: servis adindan sonra 'composer' tekrar yazilir)
 docker compose run --rm composer composer install
@@ -72,7 +72,7 @@ docker compose run --rm composer composer lint:fix
 ### Çeviri dosyaları
 
 ```bash
-docker compose run --rm wpcli i18n make-pot \
+docker compose run --rm wpcli wp i18n make-pot \
   wp-content/plugins/konform \
   wp-content/plugins/konform/languages/konform.pot \
   --slug=konform --domain=konform
