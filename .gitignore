@@ -1,0 +1,32 @@
+# PHP
+/plugin/konform/vendor/
+
+# Node (worker)
+node_modules/
+/worker/.wrangler/
+/worker/dist/
+
+# Ortam
+.env
+*.local
+
+# Derlenmis ceviriler - kaynak .po ve .pot izlenir, ciktilar izlenmez
+/plugin/konform/languages/*.mo
+/plugin/konform/languages/*.l10n.php
+
+# Yapi ciktilari
+/build/
+/dist/
+*.zip
+
+# Arac ciktilari
+.phpunit.result.cache
+/.phpcs-cache
+coverage/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp

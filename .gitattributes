@@ -1,0 +1,29 @@
+# Konteynerde Linux calisiyor; CRLF kabuk betiklerini ve PHP shebang'larini bozar.
+* text=auto eol=lf
+
+*.php    text eol=lf
+*.sh     text eol=lf
+*.md     text eol=lf
+*.yml    text eol=lf
+*.json   text eol=lf
+*.xml    text eol=lf
+*.dist   text eol=lf
+*.pot    text eol=lf
+*.po     text eol=lf
+
+*.mo     binary
+*.png    binary
+*.jpg    binary
+*.zip    binary
+
+# Dagitim arsivine girmeyecekler (WordPress.org / Freemius paketi)
+/.github/        export-ignore
+/bin/            export-ignore
+/docs/           export-ignore
+/worker/         export-ignore
+/.editorconfig   export-ignore
+/.env.example    export-ignore
+/.gitattributes  export-ignore
+/.gitignore      export-ignore
+/docker-compose.yml export-ignore
+/phpcs.xml.dist  export-ignore

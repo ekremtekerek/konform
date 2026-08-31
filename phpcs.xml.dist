@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<ruleset name="Konform">
+	<description>Konform kodlama standardi.</description>
+
+	<file>plugin/konform</file>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="ps"/>
+	<arg name="cache" value=".phpcs-cache"/>
+
+	<rule ref="WordPress-Extra"/>
+	<rule ref="WordPress-Docs"/>
+
+	<!-- i18n: metin alani sabit ve dogru olmali. Bkz. docs/I18N.md -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="konform"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Tum global isimler konform_ ile onceklenir. -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="konform"/>
+				<element value="Konform"/>
+				<element value="KONFORM"/>
+			</property>
+		</properties>
+	</rule>
+
+	<config name="minimum_wp_version" value="6.5"/>
+	<config name="testVersion" value="8.1-"/>
+
+	<!--
+		PSR-4 + Composer autoload kullaniyoruz. WP cekirdeginin "class-locale.php"
+		dosya adi kurali PSR-4 ile uyumsuzdur; sinif dosyalari sinif adini tasir.
+	-->
+	<rule ref="WordPress.Files.FileName">
+		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+	</rule>
+
+	<!-- Kancalar "konform/" ile ad alanina alinir; bilincli tercih. -->
+	<rule ref="WordPress.NamingConventions.ValidHookName">
+		<properties>
+			<property name="additionalWordDelimiters" value="/"/>
+		</properties>
+	</rule>
+
+	<!-- Duman testi WordPress disinda calisan bagimsiz bir CLI betigidir. -->
+	<exclude-pattern>*/tests/smoke.php</exclude-pattern>
+
+</ruleset>
