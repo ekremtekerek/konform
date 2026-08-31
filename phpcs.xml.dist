@@ -53,7 +53,17 @@
 		</properties>
 	</rule>
 
-	<!-- Duman testi WordPress disinda calisan bagimsiz bir CLI betigidir. -->
+	<!-- WPCS WooCommerce yetkilerini tanimaz. -->
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="manage_woocommerce"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Gelistirme betikleri: WordPress disinda veya yalnizca WP-CLI altinda calisirlar. -->
 	<exclude-pattern>*/tests/smoke.php</exclude-pattern>
+	<exclude-pattern>*/tests/seed.php</exclude-pattern>
 
 </ruleset>

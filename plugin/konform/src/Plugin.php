@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 namespace Konform;
 
+use Konform\Admin\PreflightPage;
 use Konform\I18n\Locale;
 
 defined( 'ABSPATH' ) || exit;
@@ -80,6 +81,10 @@ final class Plugin {
 		 */
 		add_action( 'woocommerce_checkout_create_order', array( Locale::class, 'capture' ), 10, 1 );
 		add_action( 'woocommerce_new_order', array( Locale::class, 'capture_by_id' ), 10, 1 );
+
+		if ( is_admin() ) {
+			PreflightPage::register();
+		}
 	}
 
 	/**

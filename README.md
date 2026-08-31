@@ -5,7 +5,7 @@ yasal geçerli e-faturaya çevirir ve satıcının kendi sağlayıcısına tesli
 
 | | |
 |---|---|
-| Durum | Faz 0 — iskelet |
+| Durum | Faz 1 — ön uçuş kontrolü çalışıyor |
 | Sürüm | `0.1.0-dev` |
 | Gereksinim | PHP 8.2+, WordPress 6.5+, WooCommerce |
 | Lisans | GPL-2.0-or-later |
@@ -122,7 +122,7 @@ Gerekçe: [`docs/adr/0001-e-fatura-kutuphanesi.md`](docs/adr/0001-e-fatura-kutup
 | Faz | Hafta | Çıktı |
 |---|---|---|
 | **0** | 1–2 | Ortam ve iskelet — *tamamlandı* |
-| 1 | 3–5 | Ön uçuş kontrolü ve EN 16931 eşleyici → ücretsiz sürüm |
+| **1** | 3–5 | Ön uçuş kontrolü ve EN 16931 eşleyici — *tamamlandı* |
 | 2 | 6–8 | Factur-X / XRechnung üretimi, PDF/A-3, arşiv |
 | 3 | 9–10 | Barındırılan doğrulama servisi (Cloudflare + Saxon-JS) |
 | 4 | 11–12 | Freemius paketleme, WordPress.org gönderimi |

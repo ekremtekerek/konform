@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-31T14:53:42+00:00\n"
+"POT-Creation-Date: 2026-08-31T15:11:40+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: konform\n"
@@ -42,6 +42,124 @@ msgstr ""
 
 #: konform.php:96
 msgid "Konform dependencies are missing. Run \"composer install\" in the plugin directory."
+msgstr ""
+
+#: src/Admin/PreflightPage.php:60
+msgid "Konform e-invoicing"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:61
+msgid "Konform"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:75
+msgid "You are not allowed to change these settings."
+msgstr ""
+
+#: src/Admin/PreflightPage.php:100
+msgid "You are not allowed to run this scan."
+msgstr ""
+
+#: src/Admin/PreflightPage.php:124
+msgid "Konform — e-invoicing pre-flight check"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:129
+msgid "Settings saved. The check was run again."
+msgstr ""
+
+#: src/Admin/PreflightPage.php:156
+msgid "There are no completed orders to check yet. Come back once you have taken your first order."
+msgstr ""
+
+#. translators: %s: number of orders that were checked.
+#: src/Admin/PreflightPage.php:164
+#, php-format
+msgid "All %s recent order would be accepted."
+msgid_plural "All %s recent orders would be accepted."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: number of orders that would be rejected, 2: number of orders checked.
+#: src/Admin/PreflightPage.php:180
+#, php-format
+msgid "%1$s of your last %2$s orders would be rejected."
+msgid_plural "%1$s of your last %2$s orders would be rejected."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/PreflightPage.php:194
+msgid "Checked"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:195
+#: src/Preflight/Severity.php:45
+msgid "Would be rejected"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:196
+#: src/Preflight/Severity.php:48
+msgid "Needs review"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:197
+msgid "Ready to invoice"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:216
+msgid "Run the check again"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:238
+msgid "Fix these once, for the whole store"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:260
+msgid "Order data that needs attention"
+msgstr ""
+
+#. translators: %s: number of affected orders.
+#: src/Admin/PreflightPage.php:267
+#, php-format
+msgid "%s order"
+msgid_plural "%s orders"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/PreflightPage.php:298
+msgid "How to fix:"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:305
+msgid "Rule:"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:328
+msgid "Affected orders:"
+msgstr ""
+
+#. translators: %s: number of additional affected orders.
+#: src/Admin/PreflightPage.php:347
+#, php-format
+msgid "and %s more"
+msgid_plural "and %s more"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/PreflightPage.php:363
+msgid "Settings"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:371
+msgid "Your VAT number"
+msgstr ""
+
+#: src/Admin/PreflightPage.php:373
+msgid "WooCommerce has no field for this, so Konform stores it. Include the country prefix."
+msgstr ""
+
+#: src/Admin/PreflightPage.php:376
+msgid "Save"
 msgstr ""
 
 #: src/I18n/CodeList.php:100
@@ -94,4 +212,308 @@ msgstr ""
 
 #: src/I18n/CodeList.php:116
 msgid "Self-billed invoice"
+msgstr ""
+
+#: src/Invoice/TaxCategoryResolver.php:83
+msgid "The store is based outside the EU, so the supply is outside the scope of EU VAT."
+msgstr ""
+
+#: src/Invoice/TaxCategoryResolver.php:86
+msgid "Domestic sale with a VAT rate applied."
+msgstr ""
+
+#: src/Invoice/TaxCategoryResolver.php:89
+msgid "Cross-border sale to an EU consumer, taxed at the destination rate under OSS."
+msgstr ""
+
+#: src/Invoice/TaxCategoryResolver.php:92
+msgid "The buyer is outside the EU, so the supply is treated as an export."
+msgstr ""
+
+#: src/Invoice/TaxCategoryResolver.php:95
+msgid "Assumed to be a service because every item is virtual or downloadable."
+msgstr ""
+
+#: src/Invoice/TaxCategoryResolver.php:98
+msgid "Assumed to be goods because the order contains shippable items."
+msgstr ""
+
+#: src/Invoice/TaxCategoryResolver.php:101
+msgid "Cross-border EU sale with no VAT and no valid buyer VAT number."
+msgstr ""
+
+#: src/Invoice/TaxCategoryResolver.php:104
+msgid "Domestic sale with no VAT applied."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:49
+msgid "Customer identity"
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:70
+msgid "The order has no customer name."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:71
+msgid "The buyer name is mandatory on every invoice."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:72
+msgid "Open the order and fill in the billing name or company."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:83
+msgid "The order has no billing country."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:84
+msgid "The buyer country determines the VAT treatment. Without it the tax category cannot be decided."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:85
+msgid "Open the order and set the billing country."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:102
+msgid "This is a cross-border EU business sale with no VAT, but the customer VAT number is missing."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:103
+msgid "When VAT is not charged on an intra-community supply, the buyer VAT identifier is mandatory. Without it the exemption cannot be justified and the invoice is rejected."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:104
+msgid "Open the order and add the VAT number to the billing details, then start collecting it at checkout."
+msgstr ""
+
+#. translators: %s: the VAT number stored on the order.
+#: src/Preflight/Rules/BuyerIdentity.php:119
+#, php-format
+msgid "The customer VAT number \"%s\" is not in a valid EU format."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:122
+msgid "An EU VAT number starts with the two-letter country code, for example DE123456789."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:123
+msgid "Open the order and correct the VAT number in the billing details."
+msgstr ""
+
+#. translators: 1: country code taken from the VAT number, 2: billing country code.
+#: src/Preflight/Rules/BuyerIdentity.php:140
+#, php-format
+msgid "The VAT number is registered in %1$s but the billing country is %2$s."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:144
+msgid "A mismatch is legitimate for branch offices, but it is also a common sign of a mistyped VAT number."
+msgstr ""
+
+#: src/Preflight/Rules/BuyerIdentity.php:145
+msgid "Open the order and confirm both values with the customer."
+msgstr ""
+
+#: src/Preflight/Rules/InvoiceBasics.php:40
+msgid "Invoice essentials"
+msgstr ""
+
+#: src/Preflight/Rules/InvoiceBasics.php:60
+msgid "The order has no invoice number."
+msgstr ""
+
+#: src/Preflight/Rules/InvoiceBasics.php:61
+msgid "Every e-invoice must carry a unique invoice number. Without it the document cannot be issued."
+msgstr ""
+
+#: src/Preflight/Rules/InvoiceBasics.php:62
+msgid "Check your order numbering plugin, or set a number with the konform/invoice_number filter."
+msgstr ""
+
+#. translators: %s: currency code stored on the order.
+#: src/Preflight/Rules/InvoiceBasics.php:75
+#, php-format
+msgid "The order currency \"%s\" is not a valid ISO 4217 code."
+msgstr ""
+
+#: src/Preflight/Rules/InvoiceBasics.php:78
+msgid "The invoice currency must be a three-letter ISO 4217 code such as EUR or PLN."
+msgstr ""
+
+#: src/Preflight/Rules/InvoiceBasics.php:79
+msgid "Fix the store currency under WooCommerce > Settings > General."
+msgstr ""
+
+#: src/Preflight/Rules/InvoiceBasics.php:90
+msgid "The order has no billable lines."
+msgstr ""
+
+#: src/Preflight/Rules/InvoiceBasics.php:91
+msgid "An invoice must contain at least one line. Orders with only zero-value items cannot be invoiced."
+msgstr ""
+
+#: src/Preflight/Rules/InvoiceBasics.php:92
+msgid "Open the order and check that it still contains its products."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:48
+msgid "Store identity"
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:66
+msgid "Your store has no business name."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:67
+msgid "The seller name appears on every invoice and is mandatory."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:68
+msgid "Set the site title under Settings > General."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:79
+msgid "Your store has no country set."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:80
+msgid "The seller country decides which national e-invoicing rules apply to you. Nothing can be generated without it."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:81
+msgid "Set it under WooCommerce > Settings > General > Store address."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:92
+msgid "Your store postal address is incomplete."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:93
+msgid "The seller street address and city are mandatory on every EU e-invoice."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:94
+msgid "Complete the address under WooCommerce > Settings > General > Store address."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:105
+msgid "Your store has no VAT number configured."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:106
+msgid "A seller VAT identifier is required on EU e-invoices. WooCommerce has no field for it, so Konform stores it separately."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:107
+msgid "Add it in the Settings box at the bottom of this page."
+msgstr ""
+
+#. translators: %s: the VAT number configured for the store.
+#: src/Preflight/Rules/SellerIdentity.php:118
+#, php-format
+msgid "Your store VAT number \"%s\" is not in a valid EU format."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:121
+msgid "An EU VAT number starts with the two-letter country code, for example FR12345678901."
+msgstr ""
+
+#: src/Preflight/Rules/SellerIdentity.php:122
+msgid "Correct it in the Settings box at the bottom of this page."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:51
+msgid "VAT category and rate"
+msgstr ""
+
+#. translators: 1: VAT category code, 2: VAT rate as a percentage.
+#: src/Preflight/Rules/TaxCategoryConsistency.php:74
+#, php-format
+msgid "VAT category %1$s is used together with a rate of %2$s%%."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:78
+msgid "Categories that carry no VAT must have a rate of exactly zero. A non-zero rate makes the invoice internally inconsistent."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:79
+msgid "Review the tax rates under WooCommerce > Settings > Tax for this customer country."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:90
+msgid "A standard-rate VAT line carries a rate of zero."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:91
+msgid "The standard category requires a rate above zero. A zero rate here usually means no tax rule matched the customer address."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:92
+msgid "Check that a tax rate exists for this country under WooCommerce > Settings > Tax."
+msgstr ""
+
+#. translators: %s: buyer country code.
+#: src/Preflight/Rules/TaxCategoryConsistency.php:141
+#, php-format
+msgid "No VAT was charged on a sale to a private customer in %s."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:144
+msgid "Under the One Stop Shop rules a sale to an EU consumer is taxed at the rate of their country. Charging no VAT means either the tax rate is missing or the exemption cannot be justified."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:145
+msgid "Add a tax rate for this country under WooCommerce > Settings > Tax, or confirm you are below the OSS threshold."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:175
+msgid "This order was treated as an intra-community service."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:176
+msgid "This order was treated as an intra-community supply of goods."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:177
+msgid "Goods use category K and services use category AE. Konform decides this from whether the items are shippable or virtual, which is a reasonable guess but not always right."
+msgstr ""
+
+#: src/Preflight/Rules/TaxCategoryConsistency.php:178
+msgid "If the classification is wrong, override it with the konform/tax_category filter."
+msgstr ""
+
+#: src/Preflight/Rules/TotalsConsistency.php:49
+msgid "Invoice totals"
+msgstr ""
+
+#. translators: 1: total calculated from the invoice lines, 2: order total in WooCommerce, 3: the difference.
+#: src/Preflight/Rules/TotalsConsistency.php:75
+#, php-format
+msgid "The invoice lines add up to %1$s but the order total is %2$s, a difference of %3$s."
+msgstr ""
+
+#: src/Preflight/Rules/TotalsConsistency.php:80
+msgid "Validators reject an invoice whose totals do not reconcile, even by one cent. This usually comes from an order-level discount, a coupon or a refund that is not represented on any line."
+msgstr ""
+
+#: src/Preflight/Rules/TotalsConsistency.php:81
+msgid "Open the order and compare the line totals with the order total."
+msgstr ""
+
+#. translators: 1: VAT total from the VAT breakdown, 2: VAT total recorded by WooCommerce.
+#: src/Preflight/Rules/TotalsConsistency.php:97
+#, php-format
+msgid "The VAT breakdown totals %1$s but WooCommerce recorded %2$s."
+msgstr ""
+
+#: src/Preflight/Rules/TotalsConsistency.php:101
+msgid "The sum of the VAT breakdown must equal the VAT charged. A gap means a rate was applied that Konform could not reconstruct from the order."
+msgstr ""
+
+#: src/Preflight/Rules/TotalsConsistency.php:102
+msgid "Review the tax lines on the order and the rounding setting under WooCommerce > Settings > Tax."
+msgstr ""
+
+#: src/Preflight/Severity.php:51
+msgid "For information"
 msgstr ""
