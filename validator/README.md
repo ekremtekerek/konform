@@ -63,6 +63,10 @@ curl -s https://<alan-adiniz>/health
    (Render/Koyeb ücretsiz web servisleri, Cloud Run varsayılanı) bu iş için
    uygun değil — servis "çalışıyor" görünür ama satılan özellik çalışmaz.
 
+   Doğrulamanın kendisi 0,1–0,3 saniye sürer. Yani 15 saniyelik bütçe
+   hesaplama için değil; tamamı ağ gecikmesi ve uyanma payıdır. Servisin
+   sürekli açık olması şartı buradan geliyor, CPU gücünden değil.
+
 Servis durum tutmaz. Yük artarsa aynı imajdan ikinci bir kopya çalıştırmak
 yeterlidir; paylaşılan bir veritabanı yoktur.
 
