@@ -203,13 +203,22 @@ final class Locale {
 	/**
 	 * Sipariş kimliğiyle çağrılan capture() biçimi.
 	 *
-	 * Ödeme sayfası dışında (yönetici, REST, içe aktarma) oluşturulan siparişler
-	 * için gereklidir.
+	 * Ödeme sayfası dışında oluşturulan siparişleri de yakalar — ama YALNIZCA
+	 * müşterinin kendi oturumunda. Yönetici panelinden, WP-CLI'dan veya REST
+	 * ile oluşturulan siparişte o anki dil YÖNETİCİNİN dilidir, müşterinin
+	 * değil; onu yakalamak Fransız müşteriye Türkçe fatura kesilmesine yol
+	 * açar. Bu durumlarda alan boş bırakılır ve fatura ülkesinden türetilen
+	 * varsayılan devreye girer — zayıf bir tahmindir ama yanlış bir kesinlikten
+	 * iyidir.
 	 *
 	 * @param int $order_id Sipariş kimliği.
 	 * @return void
 	 */
 	public static function capture_by_id( int $order_id ): void {
+		if ( ! self::is_customer_context() ) {
+			return;
+		}
+
 		$order = \wc_get_order( $order_id );
 
 		if ( ! $order instanceof \WC_Order ) {
@@ -222,6 +231,28 @@ final class Locale {
 
 		self::capture( $order );
 		$order->save();
+	}
+
+	/**
+	 * İsteğin müşterinin kendi oturumundan gelip gelmediğini bildirir.
+	 *
+	 * @return bool
+	 */
+	private static function is_customer_context(): bool {
+		if ( \defined( 'WP_CLI' ) && \WP_CLI ) {
+			return false;
+		}
+
+		if ( \defined( 'REST_REQUEST' ) && \REST_REQUEST ) {
+			return false;
+		}
+
+		if ( \defined( 'DOING_CRON' ) && \DOING_CRON ) {
+			return false;
+		}
+
+		// Ön yüzden gelen AJAX isteğinde is_admin() true döner; o hâli sayarız.
+		return ! \is_admin() || \wp_doing_ajax();
 	}
 
 	/**
