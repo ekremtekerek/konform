@@ -9,8 +9,11 @@ declare( strict_types = 1 );
 
 namespace Konform;
 
+use Konform\Admin\OrderDocuments;
 use Konform\Admin\PreflightPage;
 use Konform\I18n\Locale;
+use Konform\Queue\Scheduler;
+use Konform\Storage\Database;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -82,8 +85,17 @@ final class Plugin {
 		add_action( 'woocommerce_checkout_create_order', array( Locale::class, 'capture' ), 10, 1 );
 		add_action( 'woocommerce_new_order', array( Locale::class, 'capture_by_id' ), 10, 1 );
 
+		/*
+		 * Şema güncellemesi etkinleştirmeye bağlanamaz: eklenti dosya kopyalanarak
+		 * da güncellenebilir ve o durumda etkinleştirme kancası hiç çalışmaz.
+		 */
+		add_action( 'init', array( Database::class, 'maybe_install' ), 5 );
+
+		Scheduler::register();
+
 		if ( is_admin() ) {
 			PreflightPage::register();
+			OrderDocuments::register();
 		}
 	}
 

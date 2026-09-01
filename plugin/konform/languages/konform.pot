@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-01T06:28:12+00:00\n"
+"POT-Creation-Date: 2026-09-01T06:47:07+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: konform\n"
@@ -42,6 +42,56 @@ msgstr ""
 
 #: konform.php:96
 msgid "Konform dependencies are missing. Run \"composer install\" in the plugin directory."
+msgstr ""
+
+#: src/Admin/OrderDocuments.php:50
+msgid "E-invoice"
+msgstr ""
+
+#: src/Admin/OrderDocuments.php:97
+msgid "No document generated yet."
+msgstr ""
+
+#: src/Admin/OrderDocuments.php:104
+msgid "This order cannot be invoiced yet:"
+msgstr ""
+
+#. translators: %d: document version number.
+#: src/Admin/OrderDocuments.php:132
+#, php-format
+msgid "Version %d"
+msgstr ""
+
+#: src/Admin/OrderDocuments.php:146
+msgid "File missing or modified"
+msgstr ""
+
+#: src/Admin/OrderDocuments.php:168
+msgid "Generate new version"
+msgstr ""
+
+#: src/Admin/OrderDocuments.php:168
+msgid "Generate document"
+msgstr ""
+
+#: src/Admin/OrderDocuments.php:187
+msgid "History"
+msgstr ""
+
+#: src/Admin/OrderDocuments.php:207
+msgid "You are not allowed to download this document."
+msgstr ""
+
+#: src/Admin/OrderDocuments.php:217
+msgid "Document not found."
+msgstr ""
+
+#: src/Admin/OrderDocuments.php:222
+msgid "The archived file is missing or has been modified since it was created. It cannot be served."
+msgstr ""
+
+#: src/Admin/OrderDocuments.php:250
+msgid "You are not allowed to generate documents."
 msgstr ""
 
 #: src/Admin/PreflightPage.php:60
@@ -536,4 +586,20 @@ msgstr ""
 
 #: src/Preflight/Severity.php:51
 msgid "For information"
+msgstr ""
+
+#: src/Storage/AuditLog.php:106
+msgid "Document generated"
+msgstr ""
+
+#: src/Storage/AuditLog.php:107
+msgid "Generation failed"
+msgstr ""
+
+#: src/Storage/AuditLog.php:108
+msgid "Document downloaded"
+msgstr ""
+
+#: src/Storage/AuditLog.php:109
+msgid "Queued for generation"
 msgstr ""
