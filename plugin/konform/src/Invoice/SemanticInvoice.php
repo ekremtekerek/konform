@@ -34,6 +34,8 @@ final class SemanticInvoice {
 	 * @param float                   $paid_amount   Ödenmiş tutar. BT-113.
 	 * @param \DateTimeImmutable|null $delivery_date Fiili teslim tarihi. BT-72.
 	 * @param Party|null              $ship_to       Teslim adresi. BG-13.
+	 * @param string|null             $preceding_invoice_number Atif yapilan fatura. BT-25.
+	 * @param \DateTimeImmutable|null $preceding_invoice_date  Atıf yapılan faturanın tarihi. BT-26.
 	 */
 	public function __construct(
 		public readonly string $number,
@@ -47,6 +49,8 @@ final class SemanticInvoice {
 		public readonly float $paid_amount = 0.0,
 		public readonly ?\DateTimeImmutable $delivery_date = null,
 		public readonly ?Party $ship_to = null,
+		public readonly ?string $preceding_invoice_number = null,
+		public readonly ?\DateTimeImmutable $preceding_invoice_date = null,
 	) {}
 
 	/**

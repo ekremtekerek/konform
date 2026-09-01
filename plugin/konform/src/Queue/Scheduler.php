@@ -45,9 +45,82 @@ final class Scheduler {
 	 *
 	 * @return void
 	 */
+	/**
+	 * İade faturası kuyruk kancası.
+	 */
+	public const HOOK_CREDIT_NOTE = 'konform_generate_credit_note';
+
+	/**
+	 * Kancaları kaydeder.
+	 *
+	 * @return void
+	 */
 	public static function register(): void {
 		add_action( 'woocommerce_order_status_completed', array( self::class, 'enqueue' ), 20, 1 );
 		add_action( self::HOOK, array( self::class, 'run' ), 10, 1 );
+
+		/*
+		 * Iade, asil faturayi degistirmez; ayri bir iade faturasi uretilir.
+		 * WooCommerce'te iade siradan bir olaydir ve bunu atlamak, arsivin
+		 * gercek durumu yansitmamasina yol acar.
+		 */
+		add_action( 'woocommerce_order_refunded', array( self::class, 'enqueue_credit_note' ), 20, 2 );
+		add_action( self::HOOK_CREDIT_NOTE, array( self::class, 'run_credit_note' ), 10, 1 );
+	}
+
+	/**
+	 * İade faturasını kuyruğa alır.
+	 *
+	 * @param int $order_id  Sipariş kimliği.
+	 * @param int $refund_id İade kimliği.
+	 * @return void
+	 */
+	public static function enqueue_credit_note( int $order_id, int $refund_id ): void {
+		if ( $order_id <= 0 || $refund_id <= 0 ) {
+			return;
+		}
+
+		if ( ! Licensing::has_automatic_generation() ) {
+			return;
+		}
+
+		$args = array( 'refund_id' => $refund_id );
+
+		if ( ! self::is_available() ) {
+			self::run_credit_note( $refund_id );
+
+			return;
+		}
+
+		if ( \as_has_scheduled_action( self::HOOK_CREDIT_NOTE, $args, self::GROUP ) ) {
+			return;
+		}
+
+		\as_enqueue_async_action( self::HOOK_CREDIT_NOTE, $args, self::GROUP );
+
+		AuditLog::record( AuditLog::EVENT_QUEUED, $order_id, 0, 'Credit note for refund #' . $refund_id );
+	}
+
+	/**
+	 * Kuyruktaki iade faturası işini çalıştırır.
+	 *
+	 * @param int $refund_id İade kimliği.
+	 * @return void
+	 */
+	public static function run_credit_note( int $refund_id ): void {
+		$refund = \wc_get_order( $refund_id );
+
+		if ( ! $refund instanceof \WC_Order_Refund ) {
+			return;
+		}
+
+		$order = \wc_get_order( $refund->get_parent_id() );
+
+		if ( ! $order instanceof \WC_Order ) {
+			return;
+		}
+
+		Generator::generate_credit_note( $refund, $order );
 	}
 
 	/**

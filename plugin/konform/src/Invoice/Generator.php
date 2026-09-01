@@ -32,12 +32,37 @@ defined( 'ABSPATH' ) || exit;
 final class Generator {
 
 	/**
-	 * Sipariş için belge üretir ve arşivler.
+	 * Sipariş için fatura üretir ve arşivler.
 	 *
 	 * @param \WC_Order $order Sipariş.
 	 * @return Document|null Üretilemezse null.
 	 */
 	public static function generate( \WC_Order $order ): ?Document {
+		return self::produce( OrderMapper::map( $order ), $order );
+	}
+
+	/**
+	 * İade için iade faturası üretir ve arşivler.
+	 *
+	 * Asıl fatura DEĞİŞTİRİLMEZ. Muhasebede kayıt düzeltilmez, karşı kayıt
+	 * atılır; iade faturası ayrı bir belgedir ve öncekine atıf yapar.
+	 *
+	 * @param \WC_Order_Refund $refund İade kaydı.
+	 * @param \WC_Order        $order  Asıl sipariş.
+	 * @return Document|null Üretilemezse null.
+	 */
+	public static function generate_credit_note( \WC_Order_Refund $refund, \WC_Order $order ): ?Document {
+		return self::produce( CreditNote::map( $refund, $order ), $order );
+	}
+
+	/**
+	 * Anlamsal faturadan arşivlenmiş belgeye giden ortak akış.
+	 *
+	 * @param SemanticInvoice $invoice Anlamsal fatura.
+	 * @param \WC_Order       $order   Kaynak sipariş.
+	 * @return Document|null
+	 */
+	private static function produce( SemanticInvoice $invoice, \WC_Order $order ): ?Document {
 		$order_id = $order->get_id();
 		$blockers = self::blockers( $order );
 
@@ -55,7 +80,6 @@ final class Generator {
 			return null;
 		}
 
-		$invoice = OrderMapper::map( $order );
 		$profile = Profile::for_country( $invoice->seller->country );
 		$locale  = Locale::document( $order );
 		$builder = self::builder();
@@ -140,7 +164,14 @@ final class Generator {
 			AuditLog::EVENT_GENERATED,
 			$order_id,
 			$document->id,
-			sprintf( '%s, %s, version %d — %s', $profile->label(), $locale, $document->version, $validation->summary() )
+			sprintf(
+				'%s, type %s, %s, version %d — %s',
+				$profile->label(),
+				$invoice->type_code,
+				$locale,
+				$document->version,
+				$validation->summary()
+			)
 		);
 
 		/**
@@ -148,10 +179,11 @@ final class Generator {
 		 *
 		 * Teslim adımları (e-posta eki, PDP gönderimi) buraya bağlanır.
 		 *
-		 * @param Document  $document Arşivlenmiş belge.
-		 * @param \WC_Order $order    Sipariş.
+		 * @param Document        $document Arşivlenmiş belge.
+		 * @param \WC_Order       $order    Sipariş.
+		 * @param SemanticInvoice $invoice  Anlamsal fatura.
 		 */
-		\do_action( 'konform/document_generated', $document, $order );
+		\do_action( 'konform/document_generated', $document, $order, $invoice );
 
 		return $document;
 	}

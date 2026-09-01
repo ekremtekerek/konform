@@ -64,6 +64,8 @@
 	</rule>
 
 	<!-- Gelistirme betikleri: WordPress disinda veya yalnizca WP-CLI altinda calisirlar. -->
+	<!-- Bootstrap WordPress fonksiyonlarini bilerek sahteler; onek kurali gecerli degil. -->
+	<exclude-pattern>*/tests/bootstrap.php</exclude-pattern>
 	<exclude-pattern>*/tests/smoke.php</exclude-pattern>
 	<exclude-pattern>*/tests/seed.php</exclude-pattern>
 

@@ -114,6 +114,7 @@ final class ZugferdBuilder implements DocumentBuilder {
 		$this->apply_buyer_reference( $document, $invoice, $profile );
 		$this->apply_seller( $document, $invoice->seller );
 		$this->apply_buyer( $document, $invoice->buyer );
+		$this->apply_preceding_invoice( $document, $invoice );
 		$this->apply_delivery( $document, $invoice );
 		$this->apply_lines( $document, $invoice );
 		$this->apply_tax_breakdown( $document, $invoice );
@@ -218,6 +219,28 @@ final class ZugferdBuilder implements DocumentBuilder {
 		if ( '' !== $buyer->email ) {
 			$document->setDocumentBuyerContact( null, null, null, null, $buyer->email );
 		}
+	}
+
+	/**
+	 * Atıf yapılan önceki faturayı yazar.
+	 *
+	 * İade faturasında (tip 381) hangi faturayı düzelttiği belirtilmelidir;
+	 * BR-55 gereği referans verilen faturanın numarası zorunludur.
+	 *
+	 * @param ZugferdDocumentBuilder $document Belge.
+	 * @param SemanticInvoice        $invoice  Fatura.
+	 * @return void
+	 */
+	private function apply_preceding_invoice( ZugferdDocumentBuilder $document, SemanticInvoice $invoice ): void {
+		if ( null === $invoice->preceding_invoice_number || '' === $invoice->preceding_invoice_number ) {
+			return;
+		}
+
+		$document->setDocumentInvoiceReferencedDocument(
+			$invoice->preceding_invoice_number,
+			null,
+			$invoice->preceding_invoice_date
+		);
 	}
 
 	/**
