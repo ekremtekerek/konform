@@ -97,7 +97,15 @@ done
 rm -f "$KEEP"
 compose "$STAGE" composer dump-autoload --no-dev --optimize --no-interaction >/dev/null
 
-rm -f "$STAGE/composer.json" "$STAGE/composer.lock"
+# composer.lock gitmez; kilit dosyasi gelistirme artefaktidir ve buyuktur.
+#
+# composer.json ise KALIR. WordPress.org'un otomatik taramasi, vendor/ dizini
+# olup composer.json olmayan pakete "missing_composer_json_file" uyarisi
+# veriyor - inceleyen kisi vendor/ icinde ne oldugunu dogrulayamiyor.
+# Dosyayi birakmak uyariyi dolanmak degil, tam da taramanin istedigi seyi
+# vermek. Bagimliliklarin vendor-prefixed/ altinda oneklendigini de
+# composer.json'daki strauss bolumu acikliyor.
+rm -f "$STAGE/composer.lock"
 
 echo "==> Arsivleniyor"
 # zip her makinede kurulu degil (Git Bash'te yok, GNU tar zip uretemez);

@@ -151,3 +151,25 @@ gizlilik ve kullanım şartları depoda kaynağa karşı denetlenebilir hâldedi
 
 Kabul edildikten sonra `Tested up to` her WordPress sürümünde güncellenmeli;
 aksi halde eklenti dizinde "güncel değil" uyarısıyla gösterilir.
+
+---
+
+## Gönderim kaydı
+
+**0.1.0 — 1 Eylül 2026, WordPress.org'a gönderildi.**
+
+- Atanan slug: **`konform`** (metin alanıyla eşleşiyor, hedef buydu)
+- Otomatik tarama: **Pass**
+- Tek uyarı: `missing_composer_json_file` — paket `vendor/` taşıyıp
+  `composer.json` taşımıyordu. Gönderilen sürüm için düzeltilmedi (sayfa
+  "uyarıyı dolanmayın, inceleyen elle doğrulayacak" diyor ve yeniden gönderim
+  önerilmiyor); `build.sh` bundan sonraki paketlerde `composer.json`'ı
+  bırakıyor.
+- İnceleme yazışması: ekremtekerek@gmail.com, konu
+  *"[WordPress Plugin Directory] Review in Progress: Konform"*
+
+Onay gelene kadar slug bu sayfadan **bir kez** değiştirilebilir; sonrası için
+plugins@wordpress.org ile yazışmak gerekir.
+
+Gönderim ekranındaki "Upload updated plugin for review" ile inceleme
+başlamadan düzeltilmiş paket yüklenebilir. Yeni bir gönderim AÇMAYIN.
