@@ -52,13 +52,58 @@ curl -s https://<alan-adiniz>/health
 
 ### Sağlayıcı seçimi
 
-Fatura XML'i işlendiği için **veri yerleşimi AB'de olmalıdır** — gizlilik
-politikası bunu taahhüt eder (bkz. [`docs/PRIVACY.md`](../docs/PRIVACY.md)).
-Hetzner (Almanya/Finlandiya) veya Scaleway (Fransa) bu şartı karşılar ve
-CX22 sınıfı bir makine (2 vCPU / 4 GB) başlangıç için fazlasıyla yeterlidir.
+İki şart var:
+
+1. **Veri yerleşimi AB'de olmalı.** Fatura XML'i işleniyor ve gizlilik
+   politikası bunu taahhüt ediyor (bkz. [`docs/PRIVACY.md`](../docs/PRIVACY.md)).
+2. **Servis sürekli ayakta olmalı.** Eklenti 15 saniye bekliyor
+   (`HostedValidator::TIMEOUT`). Uykuya dalıp istekte uyanan barındırmalarda
+   ilk isteğin uyanması 30–60 saniye sürer, yani **her seyrek istek zaman
+   aşımına uğrar**. Bu yüzden ölçeği sıfıra inen ücretsiz katmanlar
+   (Render/Koyeb ücretsiz web servisleri, Cloud Run varsayılanı) bu iş için
+   uygun değil — servis "çalışıyor" görünür ama satılan özellik çalışmaz.
 
 Servis durum tutmaz. Yük artarsa aynı imajdan ikinci bir kopya çalıştırmak
 yeterlidir; paylaşılan bir veritabanı yoktur.
+
+#### Ücretsiz: Oracle Cloud Always Free
+
+İki şartı da karşılayan ücretsiz seçenek. Frankfurt (`eu-frankfurt-1`) bölgesi,
+Ampere A1 (ARM) makine, sürekli açık. Haziran 2026'dan beri ücretsiz sınır
+2 OCPU / 12 GB; bu servis için gerekenin kat kat üstünde.
+
+İmaj ARM'de sorunsuz çalışır: `node:22-slim` çok mimarili ve hem `saxon-js`
+hem `xslt3` saf JavaScript'tir, derlenen bir ikili yoktur.
+
+Üç tuzağı var, üçü de kuruluşta:
+
+- **Kapasite.** A1 makineleri "out of capacity" hatası verebilir. Frankfurt
+  genelde birkaç dakikada verir; alamazsanız biraz sonra tekrar deneyin.
+- **Güvenlik duvarı iki katmanlı.** VCN security list'te 80/443'ü açmak
+  yetmez; Oracle Linux imajı portları makinenin kendi güvenlik duvarında da
+  kapatır. İkisi de açılmazsa Caddy sertifika alamaz ve sebebi görünmez.
+- **Atıl makineler geri alınabilir.** Oracle, 7 gün boyunca CPU, ağ ve bellek
+  kullanımının 20'nin altında kaldığı Always Free makinelerini geri alma
+  hakkını saklı tutuyor. Günde birkaç fatura doğrulayan bir servis bu tanıma
+  **girer**. Bedeli olan risk budur: para ödenen bir özelliğin altındaki servis
+  sessizce durabilir.
+
+Makinenin kendi güvenlik duvarını açmak (Oracle Linux):
+
+```sh
+sudo firewall-cmd --permanent --add-service=http --add-service=https
+sudo firewall-cmd --reload
+# Bazi Oracle imajlarinda firewalld yerine dogrudan iptables kuralli gelir:
+sudo iptables -I INPUT -p tcp -m multiport --dports 80,443 -j ACCEPT
+sudo netfilter-persistent save 2>/dev/null || sudo service iptables save
+```
+
+Bu yüzden ücretsiz katmanda `/health` ucuna dışarıdan bir izleme koymak
+isteğe bağlı değildir. Beş dakikada bir kontrol eden ücretsiz bir uptime
+servisi yeterli; makine geri alınırsa aynı gün haberiniz olur.
+
+Riski tamamen kaldırmak isterseniz Hetzner CX22 (Almanya, ~4 €/ay) aynı
+`compose.yml` ile çalışır ve ne kapasite ne geri alma sorunu vardır.
 
 ---
 
