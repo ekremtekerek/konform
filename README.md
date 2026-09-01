@@ -38,12 +38,15 @@ konform/
 │   ├── languages/             .pot ve çeviriler
 │   ├── vendor-prefixed/       Strauss çıktısı (yapı artefaktı)
 │   └── tests/                 37 birim testi + smoke.php, seed.php
-├── bin/                       setup.sh, post-strauss.php, build.sh
+├── assets/                    Eklenti ikonu (128/256/300)
+├── bin/                       setup.sh, post-strauss.php, build.sh, make-icon.mjs
 ├── validator/                 Doğrulama servisi (Node + Saxon-JS)
 ├── .github/workflows/         CI: lint, test, izolasyon kontrolü
 ├── docs/
 │   ├── SPEC.md                Ürün spesifikasyonu ve yol haritası
 │   ├── I18N.md                Dil mimarisi — kod yazmadan önce oku
+│   ├── PRIVACY.md             Gizlilik politikası
+│   ├── TERMS.md               Kullanım şartları
 │   └── adr/                   Mimari kararlar
 └── docker-compose.yml
 ```

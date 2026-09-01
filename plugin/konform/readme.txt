@@ -78,8 +78,8 @@ This service is **off by default** and only runs on the Pro plan after you enter
 an endpoint and licence key.
 
 * Service: Konform validation service
-* Terms: https://konform.dev/terms
-* Privacy: https://konform.dev/privacy
+* Terms: https://github.com/ekremtekerek/konform/blob/main/docs/TERMS.md
+* Privacy: https://github.com/ekremtekerek/konform/blob/main/docs/PRIVACY.md
 
 The free version performs no external requests other than the language pack
 downloads that WordPress itself makes.

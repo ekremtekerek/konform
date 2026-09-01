@@ -423,7 +423,7 @@ final class PreflightPage {
 		}
 
 		printf(
-			'<p><label for="konform_validator_endpoint">%1$s</label><br/><input type="url" id="konform_validator_endpoint" name="konform_validator_endpoint" value="%2$s" class="regular-text" placeholder="https://validate.konform.dev"%3$s/></p>',
+			'<p><label for="konform_validator_endpoint">%1$s</label><br/><input type="url" id="konform_validator_endpoint" name="konform_validator_endpoint" value="%2$s" class="regular-text" placeholder="https://validator.example.com"%3$s/></p>',
 			esc_html__( 'Validation service address', 'konform' ),
 			esc_attr( (string) get_option( HostedValidator::OPTION_ENDPOINT, '' ) ),
 			$has_pro ? '' : ' disabled'
