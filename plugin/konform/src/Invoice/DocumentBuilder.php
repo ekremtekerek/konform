@@ -40,4 +40,18 @@ interface DocumentBuilder {
 	 * @throws \RuntimeException Profil desteklenmiyorsa veya üretim başarısızsa.
 	 */
 	public function build_xml( SemanticInvoice $invoice, Profile $profile ): string;
+
+	/**
+	 * XML'i verilen PDF'e gömerek PDF/A-3 hibrit belge üretir.
+	 *
+	 * Yalnızca hibrit profiller (Factur-X) için çağrılır; XRechnung ve KSeF
+	 * saf XML olarak iletilir ve PDF üretmek gereksiz iş olur.
+	 *
+	 * @param SemanticInvoice $invoice Anlamsal fatura.
+	 * @param Profile         $profile Belge profili.
+	 * @param string          $pdf     İnsan tarafından okunan PDF içeriği.
+	 * @return string PDF/A-3 içeriği.
+	 * @throws \RuntimeException Gömme başarısızsa.
+	 */
+	public function build_hybrid( SemanticInvoice $invoice, Profile $profile, string $pdf ): string;
 }

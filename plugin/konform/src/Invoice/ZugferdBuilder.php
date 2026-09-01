@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace Konform\Invoice;
 
 use Konform\Vendor\horstoeko\zugferd\ZugferdDocumentBuilder;
+use Konform\Vendor\horstoeko\zugferd\ZugferdDocumentPdfBuilder;
 use Konform\Vendor\horstoeko\zugferd\ZugferdProfiles;
 
 defined( 'ABSPATH' ) || exit;
@@ -50,10 +51,55 @@ final class ZugferdBuilder implements DocumentBuilder {
 	 * @throws \RuntimeException Profil desteklenmiyorsa.
 	 */
 	public function build_xml( SemanticInvoice $invoice, Profile $profile ): string {
+		return (string) $this->build_document( $invoice, $profile )->getContent();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * XML'i verilen PDF'in içine gömerek PDF/A-3 hibrit belge üretir.
+	 * Factur-X tam olarak budur: tek dosya, iki okuyucu.
+	 *
+	 * @param SemanticInvoice $invoice Anlamsal fatura.
+	 * @param Profile         $profile Belge profili.
+	 * @param string          $pdf     İnsan tarafından okunan PDF içeriği.
+	 * @return string
+	 * @throws \RuntimeException Profil desteklenmiyorsa veya gömme başarısızsa.
+	 */
+	public function build_hybrid( SemanticInvoice $invoice, Profile $profile, string $pdf ): string {
+		if ( '' === $pdf ) {
+			throw new \RuntimeException( 'Konform: the source PDF is empty.' );
+		}
+
+		$builder = new ZugferdDocumentPdfBuilder( $this->build_document( $invoice, $profile ), $pdf );
+		$builder->generateDocument();
+
+		$result = (string) $builder->downloadString();
+
+		if ( '' === $result ) {
+			throw new \RuntimeException( 'Konform: PDF/A-3 assembly produced an empty document.' );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Anlamsal faturadan kütüphane belgesini kurar.
+	 *
+	 * XML ve hibrit çıktı aynı belgeden türer; ikisini ayrı ayrı kurmak
+	 * aralarında fark oluşmasına yol açardı.
+	 *
+	 * @param SemanticInvoice $invoice Anlamsal fatura.
+	 * @param Profile         $profile Belge profili.
+	 * @return ZugferdDocumentBuilder
+	 * @throws \RuntimeException Profil desteklenmiyorsa.
+	 */
+	private function build_document( SemanticInvoice $invoice, Profile $profile ): ZugferdDocumentBuilder {
 		if ( ! $this->supports( $profile ) ) {
-			throw new \RuntimeException(
-				esc_html( sprintf( 'Konform: unsupported document profile "%s".', $profile->value ) )
-			);
+			$message = sprintf( 'Konform: unsupported document profile "%s".', $profile->value );
+
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Mesaj gunluge ve denetim izine gider, HTML'e degil; kacislamak metni bozar.
+			throw new \RuntimeException( $message );
 		}
 
 		$document = ZugferdDocumentBuilder::createNew( $this->library_profile( $profile ) );
@@ -72,7 +118,7 @@ final class ZugferdBuilder implements DocumentBuilder {
 		$this->apply_tax_breakdown( $document, $invoice );
 		$this->apply_summation( $document, $invoice );
 
-		return (string) $document->getContent();
+		return $document;
 	}
 
 	/**

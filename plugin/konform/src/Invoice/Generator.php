@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace Konform\Invoice;
 
 use Konform\I18n\Locale;
+use Konform\Pdf\PdfRenderer;
 use Konform\Preflight\Scanner;
 use Konform\Preflight\Severity;
 use Konform\Storage\Archive;
@@ -73,10 +74,23 @@ final class Generator {
 			/*
 			 * Belge ALICININ dilinde uretilir. Locale::render() disinda
 			 * switch_to_locale() cagrilmaz; bkz. docs/I18N.md.
+			 *
+			 * PDF de ayni blok icinde uretilir: uzerindeki etiketler alicinin
+			 * dilinde olmali, yoneticinin degil.
 			 */
 			$content = Locale::render(
 				$locale,
-				static fn (): string => $builder->build_xml( $invoice, $profile )
+				static function () use ( $builder, $invoice, $profile, $order ): string {
+					if ( ! $profile->is_hybrid() ) {
+						return $builder->build_xml( $invoice, $profile );
+					}
+
+					return $builder->build_hybrid(
+						$invoice,
+						$profile,
+						PdfRenderer::render( $order, $invoice )
+					);
+				}
 			);
 		} catch ( \Throwable $error ) {
 			AuditLog::record( AuditLog::EVENT_FAILED, $order_id, 0, $error->getMessage() );
@@ -88,7 +102,7 @@ final class Generator {
 			$order_id,
 			$invoice->number,
 			$profile->value,
-			'xml',
+			$profile->extension(),
 			$locale,
 			$content
 		);

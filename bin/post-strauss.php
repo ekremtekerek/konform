@@ -12,13 +12,18 @@
  *      InvalidMetadataException: Expected metadata for class
  *      Konform\Vendor\horstoeko\zugferd\...\CrossIndustryInvoiceType
  *
- * 2. ÖNEKSİZ KOPYALARIN SİLİNMESİ
+ * 2. STRAUSS'UN ATLADIĞI VARLIKLAR
+ *    Strauss paketin kodunu kopyalar, varlıklarını değil. setasign/fpdf
+ *    örneğinde fpdf.php gelir ama font/ dizini gelmez ve kütüphane çalışma
+ *    anında "Could not include font definition file" ile patlar.
+ *
+ * 3. ÖNEKSİZ KOPYALARIN SİLİNMESİ
  *    Strauss'un delete_vendor_packages seçeneği kapalıdır; çünkü açıkken
  *    Strauss çalışma anında dosya yazmaya çalışan bir autoload_aliases
  *    katmanı üretiyor ve bu, üretim ortamında izin hatası veriyor.
  *    Silmeyi bu yüzden kendimiz yapıyoruz.
  *
- * 3. ALIAS KATMANININ KALDIRILMASI
+ * 4. ALIAS KATMANININ KALDIRILMASI
  *    Önceki çalıştırmalardan kalmış olabilir.
  *
  * Yapının zorunlu adımıdır; composer.json'daki "strauss" betiğinden çağrılır.
@@ -157,9 +162,72 @@ foreach ( konform_walk( $target ) as $file ) {
 	}
 }
 
-// --- 2. Oneksiz kopyalari sil -------------------------------------------
+// --- 2. Strauss'un atladigi varliklari kopyala --------------------------
 
-$vendor  = $plugin_dir . '/vendor';
+/*
+ * Strauss paketin KODUNU kopyalar, varliklarini degil. setasign/fpdf ornegi:
+ * fpdf.php gelir ama font/ dizini gelmez ve kutuphane calisma aninda
+ * "Could not include font definition file" ile patlar.
+ *
+ * Ayni aileden bir sorun .yml metadata dosyalarinda da yasandi. O yuzden
+ * tek tek dosya listelemek yerine, oneksiz pakette olup onekli pakette
+ * olmayan her seyi aynalariz.
+ */
+$vendor   = $plugin_dir . '/vendor';
+$mirrored = 0;
+
+/*
+ * Calisma zamaninda gereksiz dizinler aynalanmaz. Ornegin FPDF'in tutorial/
+ * dizini "PDF" adinda bes ayri sinif tanimlar ve composer'in siniflandirmasini
+ * belirsiz hale getirir; ayrica dagitim arsivini gereksiz sisirir.
+ */
+$skip_directories = array( 'tutorial', 'tutorials', 'test', 'tests', 'examples', 'example', 'doc', 'docs', 'benchmark', '.github' );
+
+foreach ( (array) glob( $target . '/*', GLOB_ONLYDIR ) as $vendor_dir ) {
+	foreach ( (array) glob( $vendor_dir . '/*', GLOB_ONLYDIR ) as $package_dir ) {
+		$relative = basename( dirname( $package_dir ) ) . '/' . basename( $package_dir );
+		$source   = $vendor . '/' . $relative;
+
+		if ( ! is_dir( $source ) ) {
+			continue;
+		}
+
+		$files = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator( $source, FilesystemIterator::SKIP_DOTS )
+		);
+
+		foreach ( $files as $file ) {
+			if ( ! $file->isFile() ) {
+				continue;
+			}
+
+			$within = substr( $file->getPathname(), strlen( $source ) + 1 );
+
+			$segments = explode( DIRECTORY_SEPARATOR, str_replace( '/', DIRECTORY_SEPARATOR, $within ) );
+
+			if ( array() !== array_intersect( array_map( 'strtolower', $segments ), $skip_directories ) ) {
+				continue;
+			}
+
+			$destination = $package_dir . '/' . $within;
+
+			if ( file_exists( $destination ) ) {
+				continue;
+			}
+
+			if ( ! is_dir( dirname( $destination ) ) ) {
+				mkdir( dirname( $destination ), 0755, true );
+			}
+
+			if ( copy( $file->getPathname(), $destination ) ) {
+				++$mirrored;
+			}
+		}
+	}
+}
+
+// --- 3. Oneksiz kopyalari sil -------------------------------------------
+
 $removed = array();
 $failed  = array();
 
@@ -187,7 +255,7 @@ foreach ( (array) glob( $vendor . '/*', GLOB_ONLYDIR ) as $vendor_dir ) {
 	}
 }
 
-// --- 3. Alias katmanini kaldir ------------------------------------------
+// --- 4. Alias katmanini kaldir ------------------------------------------
 
 $aliases_removed = false;
 
@@ -204,6 +272,7 @@ foreach ( array( 'autoload_aliases.php', 'autoload_alias.php' ) as $name ) {
 printf( 'Onek         : %s%s', $prefix, PHP_EOL );
 printf( 'Kok ad alani : %s%s', implode( ', ', $roots ), PHP_EOL );
 printf( 'Metadata     : %d dosya guncellendi%s', $changed_files, PHP_EOL );
+printf( 'Aynalanan    : %d varlik dosyasi%s', $mirrored, PHP_EOL );
 printf( 'Silinen paket: %d%s', count( $removed ), PHP_EOL );
 printf( 'Alias katmani: %s%s', $aliases_removed ? 'kaldirildi' : 'yok', PHP_EOL );
 

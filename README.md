@@ -5,7 +5,7 @@ yasal geçerli e-faturaya çevirir ve satıcının kendi sağlayıcısına tesli
 
 | | |
 |---|---|
-| Durum | Faz 2 — üretim ve arşiv çalışıyor |
+| Durum | Faz 2 tamam — Factur-X PDF/A-3 üretiliyor |
 | Sürüm | `0.1.0-dev` |
 | Gereksinim | PHP 8.2+, WordPress 6.5+, WooCommerce |
 | Lisans | GPL-2.0-or-later |
@@ -27,6 +27,7 @@ konform/
 │   │   │   ├── OrderMapper · TaxCategoryResolver · Decision
 │   │   │   ├── Profile · DocumentBuilder · ZugferdBuilder
 │   │   │   └── Generator · ExemptionReason
+│   │   ├── Pdf/               PDF kaynakları (eklenti / yerleşik)
 │   │   ├── Preflight/         Tarayıcı, rapor, 5 kural
 │   │   ├── Storage/           Arşiv, denetim izi, şema
 │   │   ├── Queue/             Action Scheduler bağlantısı
@@ -146,6 +147,21 @@ Betik hangilerinin kaldığını söyler; kabuktan `rm -rf` ile temizleyin. Linu
 
 Gerekçe: [`docs/adr/0001-e-fatura-kutuphanesi.md`](docs/adr/0001-e-fatura-kutuphanesi.md)
 
+### 4. PDF'i biz üretmeyi tercih etmiyoruz
+
+Factur-X hibrittir: aynı dosyada PDF + XML. XML bizim işimiz, PDF değil.
+Mağazada bir PDF fatura eklentisi varsa onun çıktısı kullanılır — mağazanın
+kendi şablonunu taşır ve tam UTF-8'dir. Yoksa sade yerleşik şablona düşülür.
+
+⚠️ Yerleşik şablon **Latin-1**'dir (FPDF sınırı). Fransızca ve Almanca sığar;
+Lehçe, Çekçe, Yunanca ve Türkçe sığmaz. Bu durumda karakterleri sessizce
+kırpmak yerine üretmeyi reddeder ve hangi alanın soruna yol açtığını söyler.
+
+Almanya (XRechnung) ve Polonya (KSeF) saf XML kullanır — orada PDF hiç
+üretilmez.
+
+Gerekçe: [`docs/adr/0002-pdf-uretimi.md`](docs/adr/0002-pdf-uretimi.md)
+
 ---
 
 ## Yol haritası
@@ -154,7 +170,7 @@ Gerekçe: [`docs/adr/0001-e-fatura-kutuphanesi.md`](docs/adr/0001-e-fatura-kutup
 |---|---|---|
 | **0** | 1–2 | Ortam ve iskelet — *tamamlandı* |
 | **1** | 3–5 | Ön uçuş kontrolü ve EN 16931 eşleyici — *tamamlandı* |
-| **2** | 6–8 | Üretim, kuyruk ve arşiv — *tamamlandı; PDF/A-3 kaldı* |
+| **2** | 6–8 | Üretim, PDF/A-3, kuyruk ve arşiv — *tamamlandı* |
 | 3 | 9–10 | Barındırılan doğrulama servisi (Cloudflare + Saxon-JS) |
 | 4 | 11–12 | Freemius paketleme, WordPress.org gönderimi |
 
