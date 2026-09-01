@@ -106,8 +106,11 @@ Check bunu **hata** sayar. Güncel sürüm:
 Dashboard → Konform → Deployment → Add New Version → zip'i yükle.
 
 **"Release plans to users" doğrulama servisi yayında olmadan açılmaz.** Pro
-planın satılan üç özelliğinden biri resmî doğrulamadır; servis olmadan satın
-alan kişi ödediği şeyi alamaz.
+planın satılan **tek** özelliği resmî doğrulamadır (bkz.
+[ADR 0004](adr/0004-ucretsiz-pro-ayrimi.md)); servis çalışmıyorsa satın alan
+kişi ödediği şeyin tamamını alamaz.
+
+Servis 1 Eylül 2026'da yayına alındı: `konform-validator.onrender.com`.
 
 ---
 
