@@ -28,18 +28,21 @@ final class Freemius {
 	/**
 	 * Freemius ürün kimliği.
 	 *
-	 * Freemius panelinden alınır: Settings → Keys.
-	 * Girilene kadar SDK hiç yüklenmez.
+	 * Mağaza 19670, ürün 38206.
 	 */
-	private const PRODUCT_ID = '';
+	private const PRODUCT_ID = '38206';
 
 	/**
 	 * Freemius genel anahtarı (public key).
 	 *
-	 * Bu bir sır DEĞİLDİR; istemci tarafında görünür olması normaldir.
-	 * Gizli anahtar (secret key) burada kullanılmaz ve depoya girmez.
+	 * Bu bir sır DEĞİLDİR; istemci tarafında görünür olması tasarımın
+	 * parçasıdır ve her kurulumda okunabilir.
+	 *
+	 * GİZLİ anahtar (sk_...) buraya YAZILMAZ ve depoya girmez. O yalnızca
+	 * yerel geliştirme sitesinin wp-config.php dosyasında,
+	 * WP_FS__konform_SECRET_KEY sabitinde durur.
 	 */
-	private const PUBLIC_KEY = '';
+	private const PUBLIC_KEY = 'pk_d87b7be1a44f7b75829e2d8b37d48';
 
 	/**
 	 * SDK örneği.
@@ -85,14 +88,16 @@ final class Freemius {
 
 		self::$instance = \fs_dynamic_init(
 			array(
-				'id'             => self::PRODUCT_ID,
-				'slug'           => 'konform',
-				'type'           => 'plugin',
-				'public_key'     => self::PUBLIC_KEY,
-				'is_premium'     => false,
-				'has_addons'     => false,
-				'has_paid_plans' => true,
-				'menu'           => array(
+				'id'               => self::PRODUCT_ID,
+				'slug'             => 'konform',
+				'type'             => 'plugin',
+				'public_key'       => self::PUBLIC_KEY,
+				'is_premium'       => false,
+				'has_addons'       => false,
+				'has_paid_plans'   => true,
+				// Ucretsiz surum WordPress.org'da yayinlanacak.
+				'is_org_compliant' => true,
+				'menu'             => array(
 					'slug'    => 'konform',
 					'support' => false,
 					'parent'  => array(
