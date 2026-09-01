@@ -29,7 +29,12 @@ jobs:
 
       - name: Install dependencies
         working-directory: plugin/konform
-        run: composer install --no-interaction --no-progress
+        # composer dump-autoload, autoload.classmap'teki vendor-prefixed/
+        # dizinini tarar. O dizin Strauss ciktisidir, depoya girmez ve temiz
+        # bir kopyada henuz yoktur; bos olarak hazirlanmazsa kurulum patlar.
+        run: |
+          mkdir -p vendor-prefixed
+          composer install --no-interaction --no-progress
 
       - name: Isolate dependencies
         working-directory: plugin/konform
