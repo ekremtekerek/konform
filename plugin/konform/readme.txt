@@ -13,10 +13,13 @@ Find out which of your orders would be rejected as e-invoices — before the tax
 
 == Description ==
 
-E-invoicing is becoming mandatory across the EU. France requires it from
-September 2026, with small businesses following in September 2027. Poland's KSeF
-already covers most VAT-registered businesses. Germany accepts XRechnung and
-ZUGFeRD today.
+Electronic invoicing — *facture électronique* in France, *elektronische
+Rechnung* in Germany, *faktura ustrukturyzowana* in Poland — is becoming
+mandatory across the EU.
+
+France requires it from September 2026, with small businesses following in
+September 2027. Poland's KSeF already covers most VAT-registered businesses.
+Germany accepts XRechnung and ZUGFeRD today.
 
 The hard part is not producing XML. The hard part is that **WooCommerce order
 data is rarely clean enough** for the EN 16931 standard, and you only find out
@@ -119,8 +122,19 @@ Not on the free plan. On Pro, only to the validation service described under
 
 = Which countries are supported? =
 
-Version 1 targets France (Factur-X) and Germany (XRechnung). Poland (KSeF) is
-next. Other EU countries receive EN 16931 CII output.
+Version 1 targets France (Factur-X, *facture électronique*) and Germany
+(XRechnung, *E-Rechnung*). Poland (KSeF, *faktura ustrukturyzowana*) is next.
+Other EU countries receive EN 16931 CII output.
+
+= Is the free version actually usable? =
+
+Yes. The free version scans your last 50 orders, reports every problem it
+finds, and generates real Factur-X or XRechnung documents when you click
+"Generate document" on an order. Not a crippled demo.
+
+Pro adds three things: unlimited scanning, automatic generation when an order
+completes, and verification against the official EN 16931 rule set before the
+document is issued.
 
 == Screenshots ==
 

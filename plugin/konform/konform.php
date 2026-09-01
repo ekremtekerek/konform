@@ -3,7 +3,7 @@
  * Plugin Name:       Konform – EU E-Invoicing for WooCommerce
  * Plugin URI:        https://github.com/ekremtekerek/konform
  * Description:       Turns WooCommerce orders into legally valid e-invoices for the seller's country and delivers them through the seller's own e-invoicing provider.
- * Version:           0.1.0-dev
+ * Version:           0.1.0
  * Requires at least: 6.5
  * Requires PHP:      8.2
  * Requires Plugins:  woocommerce
@@ -22,7 +22,7 @@ namespace Konform;
 
 defined( 'ABSPATH' ) || exit;
 
-const VERSION     = '0.1.0-dev';
+const VERSION     = '0.1.0';
 const PLUGIN_FILE = __FILE__;
 
 /**

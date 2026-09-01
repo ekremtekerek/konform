@@ -22,7 +22,19 @@ VERSION="${1:-$(grep -oE '^ \* Version: +[0-9A-Za-z.-]+' plugin/konform/konform.
 
 echo "==> Konform $VERSION paketleniyor"
 
-rm -rf "$BUILD"
+# Windows'ta dosya kilidi yuzunden silme gecici olarak basarisiz olabilir ve
+# set -e tum yapiyi dusurur. Birkac kez denenir.
+for attempt in 1 2 3; do
+  rm -rf "$BUILD" 2>/dev/null || true
+  [ -d "$BUILD" ] || break
+  sleep 2
+done
+
+if [ -d "$BUILD" ]; then
+  echo "HATA: $BUILD silinemedi. Docker konteynerleri dosyayi tutuyor olabilir." >&2
+  exit 1
+fi
+
 mkdir -p "$STAGE"
 
 echo "==> Kaynak kopyalaniyor"

@@ -501,14 +501,14 @@ final class PreflightPage {
 		.konform-stats{display:flex;flex-wrap:wrap;gap:24px;margin-bottom:16px}
 		.konform-stat{display:flex;flex-direction:column;min-width:110px}
 		.konform-stat-value{font-size:26px;font-weight:600;line-height:1.2}
-		.konform-stat-label{font-size:12px;color:#646970;text-transform:uppercase;letter-spacing:.04em}
+		.konform-stat-label{font-size:12px;color:#646970;font-weight:600}
 		.konform-stat.konform-bad .konform-stat-value{color:#a4261d}
 		.konform-stat.konform-warn .konform-stat-value{color:#8a5700}
 		.konform-stat.konform-ok .konform-stat-value{color:#116149}
 		.konform-group{background:#fff;border:1px solid #dcdcde;border-radius:4px;padding:16px 20px;margin-bottom:14px}
 		.konform-group.konform-store{border-inline-start:3px solid #2271b1}
 		.konform-group h3{margin:0 0 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-		.konform-badge{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:3px}
+		.konform-badge{font-size:11px;font-weight:600;letter-spacing:.02em;padding:3px 8px;border-radius:3px}
 		.konform-badge.konform-blocker{background:#f6e4e2;color:#a4261d}
 		.konform-badge.konform-warning{background:#f7eddc;color:#8a5700}
 		.konform-badge.konform-info{background:#e6eef4;color:#2c5777}
