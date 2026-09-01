@@ -9,9 +9,11 @@ declare( strict_types = 1 );
 
 namespace Konform\Admin;
 
+use Konform\License\Licensing;
 use Konform\Preflight\Finding;
 use Konform\Preflight\Report;
 use Konform\Preflight\Scanner;
+use Konform\Validation\HostedValidator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -84,6 +86,26 @@ final class PreflightPage {
 		$vat_number = strtoupper( (string) preg_replace( '/[^A-Za-z0-9]/', '', $vat_number ) );
 
 		update_option( 'konform_seller_vat_number', $vat_number );
+
+		$endpoint = isset( $_POST['konform_validator_endpoint'] )
+			? esc_url_raw( wp_unslash( $_POST['konform_validator_endpoint'] ) )
+			: '';
+
+		update_option( HostedValidator::OPTION_ENDPOINT, untrailingslashit( $endpoint ) );
+
+		/*
+		 * Bos gonderilen anahtar mevcut degeri SILMEZ. Alan ekranda maskeli
+		 * gosterildigi icin, kullanicinin ona dokunmadan formu kaydetmesi
+		 * anahtari kaybetmesine yol acmamali.
+		 */
+		$key = isset( $_POST['konform_validator_key'] )
+			? sanitize_text_field( wp_unslash( $_POST['konform_validator_key'] ) )
+			: '';
+
+		if ( '' !== $key ) {
+			update_option( HostedValidator::OPTION_KEY, $key );
+		}
+
 		delete_transient( self::CACHE_KEY );
 
 		wp_safe_redirect( add_query_arg( 'konform-saved', '1', self::url() ) );
@@ -373,8 +395,47 @@ final class PreflightPage {
 			esc_html__( 'WooCommerce has no field for this, so Konform stores it. Include the country prefix.', 'konform' )
 		);
 
+		self::render_validator_settings();
+
 		printf( '<button type="submit" class="button button-primary">%s</button>', esc_html__( 'Save', 'konform' ) );
 		echo '</form>';
+	}
+
+	/**
+	 * Doğrulama servisi ayarlarını çizer.
+	 *
+	 * Anahtar ekranda maskeli gösterilir; kaydedilmiş bir sırrı yönetici
+	 * ekranında düz metin olarak basmak gereksiz bir sızıntı yüzeyidir.
+	 *
+	 * @return void
+	 */
+	private static function render_validator_settings(): void {
+		$has_pro = Licensing::has_hosted_validation();
+		$key     = (string) get_option( HostedValidator::OPTION_KEY, '' );
+
+		printf( '<hr/><p><strong>%s</strong></p>', esc_html__( 'Official validation (Pro)', 'konform' ) );
+
+		if ( ! $has_pro ) {
+			printf(
+				'<p class="description">%s</p>',
+				esc_html__( 'Validation against the official EN 16931 rule set requires the Pro plan. It cannot run inside WordPress because the rule set needs XSLT 2.0, which PHP does not support.', 'konform' )
+			);
+		}
+
+		printf(
+			'<p><label for="konform_validator_endpoint">%1$s</label><br/><input type="url" id="konform_validator_endpoint" name="konform_validator_endpoint" value="%2$s" class="regular-text" placeholder="https://validate.konform.dev"%3$s/></p>',
+			esc_html__( 'Validation service address', 'konform' ),
+			esc_attr( (string) get_option( HostedValidator::OPTION_ENDPOINT, '' ) ),
+			$has_pro ? '' : ' disabled'
+		);
+
+		printf(
+			'<p><label for="konform_validator_key">%1$s</label><br/><input type="password" id="konform_validator_key" name="konform_validator_key" value="" class="regular-text" placeholder="%2$s" autocomplete="new-password"%3$s/><br/><span class="description">%4$s</span></p>',
+			esc_html__( 'Licence key', 'konform' ),
+			esc_attr( '' === $key ? __( 'Not set', 'konform' ) : str_repeat( '•', 12 ) ),
+			$has_pro ? '' : ' disabled',
+			esc_html__( 'Leave empty to keep the saved key.', 'konform' )
+		);
 	}
 
 	/**

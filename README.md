@@ -5,7 +5,7 @@ yasal geçerli e-faturaya çevirir ve satıcının kendi sağlayıcısına tesli
 
 | | |
 |---|---|
-| Durum | Faz 4 — dağıtım paketi üretiliyor |
+| Durum | Kod tarafı tamam — hesap/alan adı bekliyor |
 | Sürüm | `0.1.0-dev` |
 | Gereksinim | PHP 8.2+, WordPress 6.5+, WooCommerce |
 | Lisans | GPL-2.0-or-later |
@@ -32,13 +32,15 @@ konform/
 │   │   ├── Storage/           Arşiv, denetim izi, şema
 │   │   ├── Validation/        Barındırılan doğrulayıcı istemcisi
 │   │   ├── License/           Plan ve özellik kapıları
+│   │   ├── Delivery/          E-posta eki
 │   │   ├── Queue/             Action Scheduler bağlantısı
 │   │   └── Admin/             Ön uçuş sayfası, sipariş kutusu
 │   ├── languages/             .pot ve çeviriler
 │   ├── vendor-prefixed/       Strauss çıktısı (yapı artefaktı)
-│   └── tests/                 smoke.php, seed.php
+│   └── tests/                 37 birim testi + smoke.php, seed.php
 ├── bin/                       setup.sh, post-strauss.php, build.sh
 ├── validator/                 Doğrulama servisi (Node + Saxon-JS)
+├── .github/workflows/         CI: lint, test, izolasyon kontrolü
 ├── docs/
 │   ├── SPEC.md                Ürün spesifikasyonu ve yol haritası
 │   ├── I18N.md                Dil mimarisi — kod yazmadan önce oku

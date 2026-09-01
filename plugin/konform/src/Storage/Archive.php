@@ -117,12 +117,17 @@ final class Archive {
 			return null;
 		}
 
+		/*
+		 * sanitize_file_name() burada YANLIS aractir: ciplak bir uzantiya
+		 * uygulaninca WordPress onu adsiz bir dosya sanip
+		 * "unnamed-file.pdf" uretiyor. Uzantiyi izin listesiyle dogruluyoruz.
+		 */
 		$filename = sprintf(
 			'%d-v%d-%s.%s',
 			$order_id,
 			$version,
 			substr( $hash, 0, 12 ),
-			\sanitize_file_name( $format )
+			self::extension( $format )
 		);
 
 		$absolute = $folder . '/' . $filename;
@@ -243,6 +248,21 @@ final class Archive {
 		);
 
 		return null === $max ? 1 : (int) $max + 1;
+	}
+
+	/**
+	 * Dosya uzantısını doğrular.
+	 *
+	 * İzin listesi kullanılır: uzantı dosya adına giriyor ve kullanıcı
+	 * girdisinden türeyebilecek her değer bir yol saldırısı yüzeyidir.
+	 *
+	 * @param string $format İstenen biçim.
+	 * @return string
+	 */
+	private static function extension( string $format ): string {
+		$format = strtolower( trim( $format ) );
+
+		return in_array( $format, array( 'xml', 'pdf' ), true ) ? $format : 'xml';
 	}
 
 	/**

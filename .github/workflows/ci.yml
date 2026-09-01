@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plugin:
+    name: Plugin
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          # Eklentinin taban surumu; daha yenisinde test etmek 8.2
+          # uyumlulugunu dogrulamaz.
+          php-version: '8.2'
+          extensions: dom, fileinfo, json, libxml, simplexml, zip, gd
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        working-directory: plugin/konform
+        run: composer install --no-interaction --no-progress
+
+      - name: Isolate dependencies
+        working-directory: plugin/konform
+        # Strauss 4000+ dosya isler; varsayilan islem zaman asimi yetmez.
+        env:
+          COMPOSER_PROCESS_TIMEOUT: 0
+        run: |
+          php vendor/bin/strauss
+          php ../../bin/post-strauss.php
+          composer dump-autoload --optimize
+
+      - name: Coding standard
+        run: plugin/konform/vendor/bin/phpcs --standard=phpcs.xml.dist
+
+      - name: Unit tests
+        working-directory: plugin/konform
+        run: vendor/bin/phpunit
+
+      - name: Verify dependencies are isolated
+        working-directory: plugin/konform
+        # Oneksiz bir uretim sinifi yuklenebiliyorsa izolasyon kirilmis
+        # demektir ve baska bir eklentiyle cakisma riski geri gelmistir.
+        run: |
+          php -r '
+            require "vendor/autoload.php";
+            $bare = "horstoeko" . chr(92) . "zugferd" . chr(92) . "ZugferdDocumentBuilder";
+            $prefixed = "Konform" . chr(92) . "Vendor" . chr(92) . $bare;
+            if ( ! class_exists( $prefixed ) ) { fwrite( STDERR, "Prefixed class missing\n" ); exit( 1 ); }
+            if ( class_exists( $bare ) ) { fwrite( STDERR, "Unprefixed class leaked\n" ); exit( 1 ); }
+            echo "Dependencies are isolated.\n";
+          '
+
+  validator:
+    name: Validation service
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: validator/package-lock.json
+
+      - name: Install dependencies
+        working-directory: validator
+        run: npm ci
+
+      - name: Build the EN 16931 rule set
+        working-directory: validator
+        run: npm run build:rules
+
+      - name: Self-check against an official example
+        working-directory: validator
+        env:
+          LICENSE_SECRET: ci-secret-0123456789
+        run: node scripts/selftest.mjs

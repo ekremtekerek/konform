@@ -48,6 +48,16 @@ final class AuditLog {
 	public const EVENT_INVALID = 'invalid';
 
 	/**
+	 * Müşteri e-postasına eklendi.
+	 */
+	public const EVENT_EMAILED = 'emailed';
+
+	/**
+	 * Saklama süresi dolduğu için arşivden kaldırıldı.
+	 */
+	public const EVENT_PRUNED = 'pruned';
+
+	/**
 	 * Olay kaydeder.
 	 *
 	 * @param string $event       Olay türü.
@@ -113,6 +123,8 @@ final class AuditLog {
 			self::EVENT_DOWNLOADED => __( 'Document downloaded', 'konform' ),
 			self::EVENT_QUEUED     => __( 'Queued for generation', 'konform' ),
 			self::EVENT_INVALID    => __( 'Rejected by official validation', 'konform' ),
+			self::EVENT_EMAILED    => __( 'Attached to customer email', 'konform' ),
+			self::EVENT_PRUNED     => __( 'Removed after the retention period', 'konform' ),
 			default                => $event,
 		};
 	}

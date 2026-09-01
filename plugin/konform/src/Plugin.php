@@ -11,9 +11,11 @@ namespace Konform;
 
 use Konform\Admin\OrderDocuments;
 use Konform\Admin\PreflightPage;
+use Konform\Delivery\EmailDelivery;
 use Konform\I18n\Locale;
 use Konform\Queue\Scheduler;
 use Konform\Storage\Database;
+use Konform\Storage\Retention;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -92,6 +94,8 @@ final class Plugin {
 		add_action( 'init', array( Database::class, 'maybe_install' ), 5 );
 
 		Scheduler::register();
+		EmailDelivery::register();
+		Retention::register();
 
 		if ( is_admin() ) {
 			PreflightPage::register();

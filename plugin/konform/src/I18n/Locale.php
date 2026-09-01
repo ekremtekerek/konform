@@ -290,6 +290,61 @@ final class Locale {
 	}
 
 	/**
+	 * Eklenti çevirilerini indirir.
+	 *
+	 * `wp_download_language_pack()` YALNIZCA çekirdek çevirilerini kurar. Bizim
+	 * ve WooCommerce'in dizgeleri ayrı paketlerdir; onlar inmeden fatura
+	 * üzerindeki etiketler İngilizce kalır. Bu, uzun süre bilinen bir eksikti
+	 * (docs/I18N.md bölüm 9).
+	 *
+	 * WordPress bekleyen çeviri güncellemelerini yalnızca SİTENİN dilleri için
+	 * listeler; hedef locale bu listeye geçici olarak eklenmelidir.
+	 *
+	 * @param string $locale Kurulacak locale.
+	 * @return bool En az bir paket kurulduysa true.
+	 */
+	private static function install_plugin_translations( string $locale ): bool {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/misc.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+		require_once ABSPATH . 'wp-admin/includes/update.php';
+
+		$add_locale = static function ( $locales ) use ( $locale ) {
+			$locales   = \is_array( $locales ) ? $locales : array();
+			$locales[] = $locale;
+
+			return array_unique( $locales );
+		};
+
+		\add_filter( 'plugins_update_check_locales', $add_locale );
+		\add_filter( 'themes_update_check_locales', $add_locale );
+
+		\wp_clean_plugins_cache( true );
+		\wp_update_plugins();
+
+		\remove_filter( 'plugins_update_check_locales', $add_locale );
+		\remove_filter( 'themes_update_check_locales', $add_locale );
+
+		$updates = \wp_get_translation_updates();
+
+		$wanted = array_values(
+			array_filter(
+				\is_array( $updates ) ? $updates : array(),
+				static fn ( $update ): bool => isset( $update->language ) && $update->language === $locale
+			)
+		);
+
+		if ( array() === $wanted ) {
+			return false;
+		}
+
+		$upgrader = new \Language_Pack_Upgrader( new \Automatic_Upgrader_Skin() );
+		$result   = $upgrader->bulk_upgrade( $wanted, array( 'clear_update_cache' => false ) );
+
+		return \is_array( $result ) && array() !== array_filter( $result );
+	}
+
+	/**
 	 * Locale'in kullanılabilir olduğunu garantiler; gerekirse dil paketini kurar.
 	 *
 	 * Kurulu olmayan bir locale'e geçmek sessizce mağazanın diline düşer — yani
@@ -312,6 +367,13 @@ final class Locale {
 		}
 
 		if ( \in_array( $locale, \get_available_languages(), true ) ) {
+			/*
+			 * Cekirdek paketi kurulu olsa bile eklenti cevirileri eksik
+			 * olabilir; ikisi ayri paketlerdir ve bu ayrimi kacirmak, fatura
+			 * etiketlerinin sessizce Ingilizce kalmasina yol acar.
+			 */
+			self::ensure_plugin_translations( $locale );
+
 			return $locale;
 		}
 
@@ -320,6 +382,29 @@ final class Locale {
 		}
 
 		return \get_locale();
+	}
+
+	/**
+	 * Eklenti çevirilerinin bir kez indirilmesini sağlar.
+	 *
+	 * Sonuç bir gün hatırlanır; her fatura üretiminde güncelleme kontrolü
+	 * yapmak kabul edilemez bir maliyettir.
+	 *
+	 * @param string $locale Locale.
+	 * @return void
+	 */
+	private static function ensure_plugin_translations( string $locale ): void {
+		$seen = \get_site_transient( 'konform_plugin_translations' );
+		$seen = \is_array( $seen ) ? $seen : array();
+
+		if ( isset( $seen[ $locale ] ) ) {
+			return;
+		}
+
+		$seen[ $locale ] = \time();
+		\set_site_transient( 'konform_plugin_translations', $seen, \DAY_IN_SECONDS );
+
+		self::install_plugin_translations( $locale );
 	}
 
 	/**
@@ -347,11 +432,19 @@ final class Locale {
 		$installed = \wp_download_language_pack( $locale );
 
 		if ( \is_string( $installed ) && '' !== $installed ) {
+			/*
+			 * Cekirdek paketi geldi, ama bu YETMEZ: wp_download_language_pack
+			 * yalnizca WordPress cekirdeginin cevirilerini indirir. Bizim ve
+			 * WooCommerce'in dizgeleri ayri paketlerdir ve onlarsiz fatura
+			 * ustundeki etiketler Ingilizce kalir.
+			 */
+			self::install_plugin_translations( $locale );
+
 			return true;
 		}
 
 		$failed[ $locale ] = \time();
-		\set_site_transient( 'konform_locale_install_failed', $failed, DAY_IN_SECONDS );
+		\set_site_transient( 'konform_locale_install_failed', $failed, \DAY_IN_SECONDS );
 
 		/**
 		 * Belge dili için dil paketi kurulamadı.

@@ -8,7 +8,7 @@
  * Calistir: npm run build:rules
  */
 
-import { mkdir, writeFile, rm, readdir } from 'node:fs/promises';
+import { mkdir, writeFile, rm, readdir, copyFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
@@ -73,6 +73,17 @@ execFileSync(
   ],
   { stdio: 'inherit' },
 );
+
+// Oz-test icin resmi bir ornek saklanir; kural setiyle AYNI surumden gelmeli,
+// aksi halde test yanlis bir taban aleyhine calisir.
+const example = join(work, 'x', 'examples', 'CII_business_example_01.xml');
+
+if (!existsSync(example)) {
+  console.error(`Ornek bulunamadi: ${example}`);
+  process.exit(1);
+}
+
+await copyFile(example, join(out, 'example-cii.xml'));
 
 await writeFile(join(out, 'VERSION'), `${VERSION}\n`, 'utf8');
 await rm(work, { recursive: true, force: true });
