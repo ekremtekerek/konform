@@ -1,5 +1,7 @@
 # PHP
 /plugin/konform/vendor/
+# Strauss ciktisi - yapi artefakti, "composer strauss" ile yeniden uretilir
+/plugin/konform/vendor-prefixed/
 
 # Node (worker)
 node_modules/

@@ -107,11 +107,31 @@ $xml_value = 'AE';                                    // her zaman
 $screen    = CodeList::label( 'tax_category', 'AE' ); // kullanicinin dilinde
 ```
 
-### 3. Açık engelleyici madde
+### 3. Bağımlılıklar izole edilmiştir
 
-`jms/serializer` (zugferd üzerinden geliyor) **php-scoper / Strauss ile izole
-edilmeden sürüm 1 yayınlanamaz.** İzole edilmezse aynı kütüphaneyi farklı sürümde
-paketleyen başka bir eklentiyle çakışıp siteyi çökertir.
+Üretim bağımlılıkları — `jms/serializer`, `symfony/*`, `setasign/fpdf` ve 18 paket
+daha — Strauss ile `Konform\Vendor\` altına taşınır. İzole edilmeselerdi aynı
+kütüphaneyi farklı sürümde paketleyen başka bir eklentiyle çakışıp siteyi
+çökertirlerdi.
+
+```bash
+docker compose run --rm composer composer strauss
+```
+
+Bu komut üç iş yapar: Strauss'u çalıştırır, `bin/post-strauss.php` ile YAML
+metadata dosyalarını önekleyip öneksiz kopyaları siler, sonra autoload'ı yeniden
+üretir.
+
+İkinci adım şart: Strauss yalnızca `.php` dosyalarını işler, ama zugferd sınıf
+eşlemelerini 399 adet `.yml` dosyasında taşır ve `jms/serializer` bu anahtarların
+gerçek sınıf adlarıyla birebir eşleşmesini bekler.
+
+`vendor-prefixed/` bir **yapı artefaktıdır** — depoya girmez, bu komutla yeniden
+üretilir.
+
+⚠️ Windows bind mount üzerinde öneksiz paketlerin silinmesi bazen başarısız olur.
+Betik hangilerinin kaldığını söyler; kabuktan `rm -rf` ile temizleyin. Linux'ta
+(CI) bu sorun yaşanmaz.
 
 Gerekçe: [`docs/adr/0001-e-fatura-kutuphanesi.md`](docs/adr/0001-e-fatura-kutuphanesi.md)
 
@@ -123,7 +143,7 @@ Gerekçe: [`docs/adr/0001-e-fatura-kutuphanesi.md`](docs/adr/0001-e-fatura-kutup
 |---|---|---|
 | **0** | 1–2 | Ortam ve iskelet — *tamamlandı* |
 | **1** | 3–5 | Ön uçuş kontrolü ve EN 16931 eşleyici — *tamamlandı* |
-| 2 | 6–8 | Factur-X / XRechnung üretimi, PDF/A-3, arşiv |
+| 2 | 6–8 | Factur-X / XRechnung üretimi, PDF/A-3, arşiv — *izolasyon tamam* |
 | 3 | 9–10 | Barındırılan doğrulama servisi (Cloudflare + Saxon-JS) |
 | 4 | 11–12 | Freemius paketleme, WordPress.org gönderimi |
 

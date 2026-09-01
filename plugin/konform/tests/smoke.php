@@ -1,6 +1,9 @@
 <?php
 /**
  * Bagimlilik duman testi - WordPress gerektirmez.
+ *
+ * Onekli ad alanini kullanir: bagimliliklar Strauss ile izole edilir,
+ * boylece ayni kutuphaneyi paketleyen baska bir eklentiyle cakismaz.
  * Calistir: docker compose run --rm composer php tests/smoke.php
  *
  * @package Konform
@@ -10,8 +13,8 @@ declare( strict_types = 1 );
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use horstoeko\zugferd\ZugferdDocumentBuilder;
-use horstoeko\zugferd\ZugferdProfiles;
+use Konform\Vendor\horstoeko\zugferd\ZugferdDocumentBuilder;
+use Konform\Vendor\horstoeko\zugferd\ZugferdProfiles;
 
 $doc = ZugferdDocumentBuilder::createNew( ZugferdProfiles::PROFILE_EN16931 );
 
