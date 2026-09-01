@@ -1,4 +1,4 @@
+.env
+.rules-build/
 node_modules/
 rules/
-.rules-build/
-.env

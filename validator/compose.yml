@@ -1,0 +1,54 @@
+# Konform dogrulama servisi - uretim dagitimi.
+#
+# Kullanim:
+#   cp .env.example .env   ve iceriini doldurun
+#   docker compose up -d --build
+#
+# Kural seti imaj yapilirken indirilip derlenir; calisma aninda disari cikis
+# gerekmez. Kural seti guncellendiginde imaj yeniden yapilir.
+
+services:
+  validator:
+    build:
+      context: .
+      args:
+        EN16931_VERSION: ${RULES_VERSION:-1.3.16}
+    restart: unless-stopped
+    environment:
+      # Bos birakilirsa servis her istegi 401 ile reddeder (kapali basarisizlik).
+      LICENSE_SECRET: ${LICENSE_SECRET:?LICENSE_SECRET tanimlanmali}
+      RULES_VERSION: ${RULES_VERSION:-1.3.16}
+      PORT: 8790
+    expose:
+      - "8790"
+    # Servis dosya yazmaz; kok dosya sistemi salt okunur olabilir.
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          # Schematron donusumu CPU yakar; tek istek makineyi yemesin.
+          cpus: "1.5"
+          memory: 1g
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN tanimlanmali}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - validator
+
+volumes:
+  caddy-data:
+  caddy-config:

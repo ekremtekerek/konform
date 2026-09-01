@@ -43,6 +43,8 @@ tar -cf - -C plugin/konform \
   --exclude=vendor-prefixed \
   --exclude=tests \
   --exclude=.gitignore \
+  --exclude=phpunit.xml.dist \
+  --exclude=.phpunit.cache \
   . | tar -xf - -C "$STAGE"
 
 compose() { docker compose run --rm -T -w "/repo/$1" composer "${@:2}"; }
@@ -77,6 +79,21 @@ find "$STAGE/vendor" -mindepth 1 -maxdepth 1 -type d -not -name composer | while
   done
   rmdir "$dir" 2>/dev/null || true
 done
+
+# vendor/composer/ yukaridaki dongude atlanir, cunku otomatik yukleyici
+# dosyalarini barindirir ve onlar kalmalidir. Ama ayni dizinde Strauss'un
+# cektigi composer paketleri de vardir (composer/composer, composer/pcre,
+# composer/semver ...). Atlanan dizin hic taranmadigi icin Composer'in kendisi
+# eklentiyle birlikte dagitiliyordu. Burada yalnizca ALT DIZINLER, yani
+# paketler degerlendirilir; dosyalara dokunulmaz.
+find "$STAGE/vendor/composer" -mindepth 1 -maxdepth 1 -type d | while read -r pkg_dir; do
+  full="composer/$(basename "$pkg_dir")"
+  if grep -qx "$full" "$KEEP" 2>/dev/null && [ ! -d "$STAGE/vendor-prefixed/$full" ]; then
+    continue
+  fi
+  rm -rf "$pkg_dir"
+done
+
 rm -f "$KEEP"
 compose "$STAGE" composer dump-autoload --no-dev --optimize --no-interaction >/dev/null
 

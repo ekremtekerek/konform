@@ -1,0 +1,23 @@
+# Konform dogrulama servisi - TLS sonlandirma.
+#
+# Caddy sertifikayi Let's Encrypt'ten kendisi alir ve yeniler; ayri bir
+# certbot adimi yoktur. DOMAIN ortam degiskeninden gelir.
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Servis yalnizca bu iki yolu tanir; geri kalani buraya hic ulasmasin.
+	@allowed path /v1/validate /health
+	handle @allowed {
+		reverse_proxy validator:8790
+	}
+
+	handle {
+		respond 404
+	}
+
+	log {
+		# Fatura XML'i gövdededir ve loglanmaz. Yol ve durum kodu yeterlidir.
+		format console
+	}
+}

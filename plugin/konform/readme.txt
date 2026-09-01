@@ -2,7 +2,7 @@
 Contributors: cisoft
 Tags: e-invoicing, woocommerce, factur-x, xrechnung, en16931
 Requires at least: 6.5
-Tested up to: 6.9
+Tested up to: 7.1
 Requires PHP: 8.2
 Requires Plugins: woocommerce
 Stable tag: 0.1.0
