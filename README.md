@@ -16,21 +16,30 @@ yasal geçerli e-faturaya çevirir ve satıcının kendi sağlayıcısına tesli
 
 ```
 konform/
-├── plugin/konform/        WordPress eklentisi
-│   ├── konform.php        Ana dosya, başlıklar, önyükleme
-│   ├── uninstall.php      Kaldırma (arşiv korunur)
+├── plugin/konform/            WordPress eklentisi
+│   ├── konform.php            Ana dosya, başlıklar, önyükleme
+│   ├── uninstall.php          Kaldırma (arşiv korunur)
 │   ├── src/
-│   │   ├── Plugin.php     Yaşam döngüsü ve kanca kayıtları
-│   │   └── I18n/
-│   │       ├── Locale.php    Üç dil ekseni  ← docs/I18N.md
-│   │       └── CodeList.php  EN 16931 kod listeleri
-│   ├── languages/         .pot ve çeviriler
-│   └── tests/
-├── worker/                Doğrulama servisi (Faz 3, Cloudflare)
+│   │   ├── Plugin.php         Yaşam döngüsü ve kanca kayıtları
+│   │   ├── I18n/              Locale (üç dil ekseni), CodeList
+│   │   ├── Invoice/           EN 16931 modeli, eşleyici, üretici
+│   │   │   ├── SemanticInvoice · Party · Line · TaxSubtotal
+│   │   │   ├── OrderMapper · TaxCategoryResolver · Decision
+│   │   │   ├── Profile · DocumentBuilder · ZugferdBuilder
+│   │   │   └── Generator · ExemptionReason
+│   │   ├── Preflight/         Tarayıcı, rapor, 5 kural
+│   │   ├── Storage/           Arşiv, denetim izi, şema
+│   │   ├── Queue/             Action Scheduler bağlantısı
+│   │   └── Admin/             Ön uçuş sayfası, sipariş kutusu
+│   ├── languages/             .pot ve çeviriler
+│   ├── vendor-prefixed/       Strauss çıktısı (yapı artefaktı)
+│   └── tests/                 smoke.php, seed.php
+├── bin/                       setup.sh, post-strauss.php
+├── worker/                    Doğrulama servisi (Faz 3, Cloudflare)
 ├── docs/
-│   ├── SPEC.md            Ürün spesifikasyonu ve yol haritası
-│   ├── I18N.md            Dil mimarisi — kod yazmadan önce oku
-│   └── adr/               Mimari kararlar
+│   ├── SPEC.md                Ürün spesifikasyonu ve yol haritası
+│   ├── I18N.md                Dil mimarisi — kod yazmadan önce oku
+│   └── adr/                   Mimari kararlar
 └── docker-compose.yml
 ```
 
@@ -44,7 +53,9 @@ cp .env.example .env
 bash bin/setup.sh
 ```
 
-Kurulum bitince: <http://localhost:8080/wp-admin> — `admin` / `admin`
+Kurulum bitince: <http://localhost:8088/wp-admin> — `admin` / `admin`
+
+(Port `.env` icindeki `WP_PORT` ile degistirilir; 8080 makinede doluydu.)
 
 ### Sık kullanılan komutlar
 
