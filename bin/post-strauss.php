@@ -281,15 +281,16 @@ printf( 'Silinen paket: %d%s', count( $removed ), PHP_EOL );
 printf( 'Alias katmani: %s%s', $aliases_removed ? 'kaldirildi' : 'yok', PHP_EOL );
 
 if ( array() !== $failed ) {
-	printf( '%sUYARI: %d paket silinemedi:%s', PHP_EOL, count( $failed ), PHP_EOL );
-
-	foreach ( $failed as $package ) {
-		printf( '  %s%s', $package, PHP_EOL );
-	}
-
+	/*
+	 * Tamami STDERR'e yazilir. build.sh bu betigin stdout'unu /dev/null'a
+	 * yonlendirir; liste stdout'ta kalirsa "bir sey silinemedi, su komutla
+	 * temizleyin" uyarisi hangi paketten soz ettigini soylemeden gorunur.
+	 */
 	fwrite(
 		STDERR,
-		PHP_EOL . 'Windows bind mount uzerinde silme basarisiz olabilir; ' .
-		'kabuktan "rm -rf plugin/konform/vendor/<paket>" ile temizleyin.' . PHP_EOL
+		sprintf( '%sUYARI: %d paket silinemedi:%s', PHP_EOL, count( $failed ), PHP_EOL )
+		. implode( '', array_map( static fn ( string $p ): string => '  ' . $p . PHP_EOL, $failed ) )
+		. PHP_EOL . 'Windows bind mount uzerinde silme basarisiz olabilir; '
+		. 'kabuktan "rm -rf plugin/konform/vendor/<paket>" ile temizleyin.' . PHP_EOL
 	);
 }
