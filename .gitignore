@@ -26,6 +26,7 @@ node_modules/
 
 # Arac ciktilari
 .phpunit.result.cache
+/plugin/konform/.phpunit.cache/
 /.phpcs-cache
 coverage/
 
