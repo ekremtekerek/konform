@@ -47,7 +47,8 @@
       "@php vendor/bin/strauss",
       "@php ../../bin/post-strauss.php",
       "@composer dump-autoload -o"
-    ]
+    ],
+    "test": "phpunit"
   },
   "extra": {
     "strauss": {

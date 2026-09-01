@@ -91,7 +91,7 @@ final class Eu {
 	 * @return bool
 	 */
 	public static function looks_like_vat_number( string $vat_number ): bool {
-		$vat_number = strtoupper( preg_replace( '/[^A-Z0-9]/', '', $vat_number ) ?? '' );
+		$vat_number = self::normalise( $vat_number );
 
 		if ( strlen( $vat_number ) < 4 ) {
 			return false;
@@ -114,7 +114,7 @@ final class Eu {
 	 * @return string İki harfli ön ek; okunamazsa boş dize.
 	 */
 	public static function vat_prefix( string $vat_number ): string {
-		$vat_number = strtoupper( preg_replace( '/[^A-Z0-9]/', '', $vat_number ) ?? '' );
+		$vat_number = self::normalise( $vat_number );
 
 		if ( strlen( $vat_number ) < 2 ) {
 			return '';
@@ -124,5 +124,20 @@ final class Eu {
 
 		// EL, Yunanistan'ın KDV ön ekidir; ISO ülke kodu GR olarak normalize edilir.
 		return 'EL' === $prefix ? 'GR' : $prefix;
+	}
+
+	/**
+	 * KDV numarasını karşılaştırılabilir biçime getirir.
+	 *
+	 * Sıra önemlidir: ÖNCE büyük harfe çevrilir, SONRA harf ve rakam dışı
+	 * karakterler atılır. Ters sırada "de123456789" gibi küçük harfle yazılmış
+	 * bir numaranın ülke ön eki tamamen silinir ve numara geçersiz sayılır —
+	 * müşteriler bu alanı sıklıkla küçük harfle doldurur.
+	 *
+	 * @param string $vat_number Ham KDV numarası.
+	 * @return string
+	 */
+	private static function normalise( string $vat_number ): string {
+		return (string) preg_replace( '/[^A-Z0-9]/', '', strtoupper( $vat_number ) );
 	}
 }
