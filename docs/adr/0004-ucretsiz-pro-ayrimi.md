@@ -63,3 +63,14 @@ gerekçeyle satılabilir; yol haritası bu yönde daralmıyor.
 tabidir ve beyan gelecek sürümleri de kapsar. Freemius'tan dağıtılan Pro
 paketi ek özellik taşıyabilir, ama .org'daki koda lisans kapısı eklemek
 eklentiyi ve hesabı riske atar.
+
+## Ek: dördüncü kapı
+
+İlk taramada üç kapı sayılmıştı. Kod tabanı baştan sona tarandığında bir
+dördüncüsü çıktı: `EmailDelivery::attach()`, üretilen belgeyi WooCommerce'in
+müşteriye gönderdiği e-postaya eklemeyi Pro'ya bağlıyordu. Bu da tamamen
+eklenti kodunda duran bir işlev; kaldırıldı.
+
+Ders: "birkaç yerde kapı var" diye çalışmak yetmiyor. Kalan tek plan koşulu
+`Licensing::has_hosted_validation()` ve onu çağıran iki yer
+(`HostedValidator`, ayar kutusunu gösteren `PreflightPage`).

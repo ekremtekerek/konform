@@ -9,8 +9,6 @@ declare( strict_types = 1 );
 
 namespace Konform\Delivery;
 
-use Konform\License\Licensing;
-use Konform\License\Plan;
 use Konform\Storage\Archive;
 use Konform\Storage\AuditLog;
 
@@ -57,10 +55,6 @@ final class EmailDelivery {
 		unset( $email );
 
 		$attachments = is_array( $attachments ) ? $attachments : array();
-
-		if ( ! Licensing::has( Plan::PRO ) ) {
-			return $attachments;
-		}
 
 		/**
 		 * Belgenin ekleneceği e-posta kimliklerini değiştirir.
