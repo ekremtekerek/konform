@@ -5,7 +5,7 @@ yasal geçerli e-faturaya çevirir ve satıcının kendi sağlayıcısına tesli
 
 | | |
 |---|---|
-| Durum | Faz 3 tamam — resmi EN 16931 doğrulaması çalışıyor |
+| Durum | Faz 4 — dağıtım paketi üretiliyor |
 | Sürüm | `0.1.0-dev` |
 | Gereksinim | PHP 8.2+, WordPress 6.5+, WooCommerce |
 | Lisans | GPL-2.0-or-later |
@@ -31,12 +31,13 @@ konform/
 │   │   ├── Preflight/         Tarayıcı, rapor, 5 kural
 │   │   ├── Storage/           Arşiv, denetim izi, şema
 │   │   ├── Validation/        Barındırılan doğrulayıcı istemcisi
+│   │   ├── License/           Plan ve özellik kapıları
 │   │   ├── Queue/             Action Scheduler bağlantısı
 │   │   └── Admin/             Ön uçuş sayfası, sipariş kutusu
 │   ├── languages/             .pot ve çeviriler
 │   ├── vendor-prefixed/       Strauss çıktısı (yapı artefaktı)
 │   └── tests/                 smoke.php, seed.php
-├── bin/                       setup.sh, post-strauss.php
+├── bin/                       setup.sh, post-strauss.php, build.sh
 ├── validator/                 Doğrulama servisi (Node + Saxon-JS)
 ├── docs/
 │   ├── SPEC.md                Ürün spesifikasyonu ve yol haritası
@@ -173,6 +174,6 @@ Gerekçe: [`docs/adr/0002-pdf-uretimi.md`](docs/adr/0002-pdf-uretimi.md)
 | **1** | 3–5 | Ön uçuş kontrolü ve EN 16931 eşleyici — *tamamlandı* |
 | **2** | 6–8 | Üretim, PDF/A-3, kuyruk ve arşiv — *tamamlandı* |
 | **3** | 9–10 | Barındırılan doğrulama servisi — *tamamlandı (Node, Cloudflare değil)* |
-| 4 | 11–12 | Freemius paketleme, WordPress.org gönderimi |
+| **4** | 11–12 | Paketleme, plan kapıları, readme.txt — *dağıtım paketi üretiliyor* |
 
 Ayrıntı: [`docs/SPEC.md`](docs/SPEC.md)

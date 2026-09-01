@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace Konform\Preflight;
 
 use Konform\Invoice\OrderMapper;
+use Konform\License\Licensing;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -21,11 +22,6 @@ defined( 'ABSPATH' ) || exit;
  * yapılmadan görünür.
  */
 final class Scanner {
-
-	/**
-	 * Ücretsiz sürümde taranabilecek en fazla sipariş sayısı.
-	 */
-	public const FREE_LIMIT = 50;
 
 	/**
 	 * Kayıtlı kurallar.
@@ -74,10 +70,12 @@ final class Scanner {
 	/**
 	 * Son siparişleri tarar.
 	 *
-	 * @param int $limit Taranacak sipariş sayısı.
+	 * @param int|null $limit Taranacak sipariş sayısı; null ise plana göre belirlenir.
 	 * @return Report
 	 */
-	public static function scan( int $limit = self::FREE_LIMIT ): Report {
+	public static function scan( ?int $limit = null ): Report {
+		$limit = $limit ?? Licensing::preflight_limit();
+
 		/**
 		 * Tarama sınırını değiştirir.
 		 *

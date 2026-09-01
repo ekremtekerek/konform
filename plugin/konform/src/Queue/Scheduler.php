@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace Konform\Queue;
 
 use Konform\Invoice\Generator;
+use Konform\License\Licensing;
 use Konform\Storage\AuditLog;
 
 defined( 'ABSPATH' ) || exit;
@@ -66,6 +67,14 @@ final class Scheduler {
 	 */
 	public static function enqueue( int $order_id ): void {
 		if ( $order_id <= 0 ) {
+			return;
+		}
+
+		/*
+		 * Ucretsiz surumde uretim elle tetiklenir; otomatik akis Pro'nun
+		 * satis gerekcelerinden biridir. Elle uretim her planda calisir.
+		 */
+		if ( ! Licensing::has_automatic_generation() ) {
 			return;
 		}
 

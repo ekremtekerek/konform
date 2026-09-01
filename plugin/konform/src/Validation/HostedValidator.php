@@ -9,6 +9,8 @@ declare( strict_types = 1 );
 
 namespace Konform\Validation;
 
+use Konform\License\Licensing;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -48,6 +50,10 @@ final class HostedValidator {
 	 * @return bool
 	 */
 	public function is_configured(): bool {
+		if ( ! Licensing::has_hosted_validation() ) {
+			return false;
+		}
+
 		return '' !== $this->endpoint() && '' !== $this->key();
 	}
 

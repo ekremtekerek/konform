@@ -36,7 +36,11 @@
 
 declare( strict_types = 1 );
 
-$plugin_dir    = dirname( __DIR__ ) . '/plugin/konform';
+/*
+ * Eklenti dizini varsayilan olarak depodaki kaynaktir. Dagitim arsivi
+ * uretilirken (bin/build.sh) hazirlik dizini argumanla verilir.
+ */
+$plugin_dir    = $argv[1] ?? dirname( __DIR__ ) . '/plugin/konform';
 $composer_file = $plugin_dir . '/composer.json';
 
 if ( ! is_readable( $composer_file ) ) {
