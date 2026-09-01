@@ -56,6 +56,25 @@ unzip -l build/konform-*.zip | grep 'vendor/freemius'
 # dolu olmali
 ```
 
+Yukarıdakiler dosyaların varlığına bakar. Asıl soru ise paketin **kendi**
+otomatik yükleyicisinin ne çözdüğüdür — dosya doğru yerde durup yükleyici onu
+görmüyor olabilir. CI bunu kaynak ağacında sınar; dağıtılan pakette ayrıca
+sınanmalıdır:
+
+```sh
+MSYS_NO_PATHCONV=1 docker compose run --rm -T -w /repo/build/konform composer php -r '
+require "vendor/autoload.php";
+$bare = "horstoeko" . chr(92) . "zugferd" . chr(92) . "ZugferdDocumentBuilder";
+$prefixed = "Konform" . chr(92) . "Vendor" . chr(92) . $bare;
+if ( ! class_exists( $prefixed ) ) { echo "HATA: onekli sinif yok\n"; exit(1); }
+if ( class_exists( $bare ) ) { echo "HATA: oneksiz sinif sizmis\n"; exit(1); }
+echo "izolasyon tamam\n";
+'
+```
+
+Ters eğik çizgi `chr(92)` ile kuruluyor: kabuk ve PHP arasında geçen bir
+dizgede kaçış karakteri sessizce yenir ve sınıf adı yanlış çözülür.
+
 ### Plugin Check
 
 WordPress.org'un asıl kapısı budur. Yerel WordPress'te:
