@@ -28,21 +28,19 @@ defined( 'ABSPATH' ) || exit;
 final class Licensing {
 
 	/**
-	 * Ücretsiz sürümde taranabilecek en fazla sipariş.
-	 */
-	public const FREE_PREFLIGHT_LIMIT = 50;
-
-	/**
-	 * Pro sürümde tek taramada işlenecek en fazla sipariş.
+	 * Tek taramada işlenecek en fazla sipariş.
 	 *
-	 * Pazarlama dili "sınırsız" dese de gerçek bir sınır ŞART. Tarama bir
-	 * yönetici isteği içinde çalışır; 200 bin siparişlik bir mağazada
-	 * sınırsız tarama sayfayı zaman aşımına uğratır ve veritabanını yorar.
-	 * Sınırı kaldırmak isteyen konform/preflight_limit kancasını kullanır;
-	 * daha büyük mağazalar için doğru çözüm kuyruğa alınmış toplu tarama
-	 * olacak (yol haritasında).
+	 * Bu sınır PLANA BAĞLI DEĞİLDİR ve olamaz: WordPress.org, eklentinin
+	 * kodunda bulunan bir işleve lisansa bağlı kullanım sınırı koymayı
+	 * yasaklıyor. Bkz. docs/adr/0004-ucretsiz-pro-ayrimi.md
+	 *
+	 * Gerçek bir sınır yine de ŞART, ama gerekçesi başka: tarama bir yönetici
+	 * isteği içinde çalışır ve 200 bin siparişlik bir mağazada sınırsız tarama
+	 * sayfayı zaman aşımına uğratıp veritabanını yorar. Değiştirmek isteyen
+	 * konform/preflight_limit kancasını kullanır; büyük mağazalar için doğru
+	 * çözüm kuyruğa alınmış toplu tarama olacak (yol haritasında).
 	 */
-	public const PRO_PREFLIGHT_LIMIT = 1000;
+	public const PREFLIGHT_LIMIT = 1000;
 
 	/**
 	 * Etkin plan.
@@ -80,26 +78,20 @@ final class Licensing {
 	 * @return int
 	 */
 	public static function preflight_limit(): int {
-		return self::has( Plan::PRO ) ? self::PRO_PREFLIGHT_LIMIT : self::FREE_PREFLIGHT_LIMIT;
-	}
-
-	/**
-	 * Sipariş tamamlandığında belge kendiliğinden üretilsin mi.
-	 *
-	 * Ücretsiz sürümde üretim elle tetiklenir; otomatik akış Pro'nun asıl
-	 * satış gerekçelerinden biridir.
-	 *
-	 * @return bool
-	 */
-	public static function has_automatic_generation(): bool {
-		return self::has( Plan::PRO );
+		return self::PREFLIGHT_LIMIT;
 	}
 
 	/**
 	 * Barındırılan resmi doğrulama açık mı.
 	 *
-	 * Ürünün en değerli parçası ve aynı zamanda lisans koruması: bu servis
-	 * null'lanmış bir kopyada çalışmaz.
+	 * Planla ayrılan TEK şey budur ve ayrılabilmesinin sebebi, eklentinin
+	 * bunu zaten kendi başına yapamamasıdır: kural seti XSLT 2.0'a derlenir,
+	 * PHP'nin ext-xsl uzantısı XSLT 1.0'da kalır. Yani burada kapatılan şey
+	 * "kodda olan bir işlev" değil, dışarıda işletilen bir servise erişimdir.
+	 * WordPress.org'un yasakladığı yapay sınır bu değildir.
+	 *
+	 * Aynı zamanda lisans koruması: bu servis null'lanmış bir kopyada
+	 * çalışmaz.
 	 *
 	 * @return bool
 	 */

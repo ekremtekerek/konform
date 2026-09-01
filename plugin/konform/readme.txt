@@ -128,13 +128,18 @@ Other EU countries receive EN 16931 CII output.
 
 = Is the free version actually usable? =
 
-Yes. The free version scans your last 50 orders, reports every problem it
-finds, and generates real Factur-X or XRechnung documents when you click
-"Generate document" on an order. Not a crippled demo.
+Yes, and not in the "crippled demo" sense. The free version does everything
+the plugin itself is capable of: it scans your orders, reports every problem
+it finds, generates real Factur-X and XRechnung documents, produces credit
+notes for refunds, archives every version with a hash, and generates a
+document automatically when an order completes. Nothing in the code is
+switched off by a licence.
 
-Pro adds three things: unlimited scanning, automatic generation when an order
-completes, and verification against the official EN 16931 rule set before the
-document is issued.
+Pro adds one thing, because it is the one thing the plugin cannot do on its
+own: validation against the **official** EN 16931 rule set before a document
+is issued. That rule set compiles to XSLT 2.0 and PHP's XSL extension only
+supports XSLT 1.0, so the check runs on a hosted service instead of on your
+site. See **External services** above.
 
 == Screenshots ==
 
