@@ -28,6 +28,31 @@ Yanlışlıkla kimliksiz açılan bir servis çalışır durumda görünmez.
 
 ## Dağıtım
 
+### Render (şu an kullanılan)
+
+Panelden **New → Web Service**, GitHub deposu `ekremtekerek/konform`:
+
+| Alan | Değer |
+|---|---|
+| Name | `konform-validator` |
+| Language | Docker |
+| Branch | `main` |
+| Region | Frankfurt (EU Central) |
+| Root Directory | `validator` |
+| Instance Type | Free |
+| Health Check Path | `/health` |
+| `LICENSE_SECRET` | değer alanındaki **Generate** ile üretilir |
+| `RULES_VERSION` | `1.3.16` |
+
+Kök dizin `validator` olduğu için `plugin/` altındaki değişiklikler yeniden
+dağıtım tetiklemez. `Dockerfile` doğrudan kullanılır; `compose.yml` ve
+`Caddyfile` bu yolda devrede değildir.
+
+İlk yapı kural setini indirip SEF'e derlediği için birkaç dakika sürer —
+ölçülen: 1 dk 1 sn.
+
+### Kendi sunucunuzda
+
 Gereken: Docker'ı olan herhangi bir sunucu ve alan adının A kaydının o sunucuya
 bakması. TLS'i Caddy kendisi alır ve yeniler.
 
@@ -52,29 +77,55 @@ curl -s https://<alan-adiniz>/health
 
 ### Sağlayıcı seçimi
 
-İki şart var:
+**Şu an yayında:** Render, Frankfurt bölgesi, ücretsiz katman
+(`konform-validator`, `https://konform-validator.onrender.com`). Kaynak GitHub
+deposundan, kök dizin `validator/`, `main` dalına her gönderimde yeniden
+dağıtılıyor.
 
-1. **Veri yerleşimi AB'de olmalı.** Fatura XML'i işleniyor ve gizlilik
-   politikası bunu taahhüt ediyor (bkz. [`docs/PRIVACY.md`](../docs/PRIVACY.md)).
-2. **Servis sürekli ayakta olmalı.** Eklenti 15 saniye bekliyor
-   (`HostedValidator::TIMEOUT`). Uykuya dalıp istekte uyanan barındırmalarda
-   ilk isteğin uyanması 30–60 saniye sürer, yani **her seyrek istek zaman
-   aşımına uğrar**. Bu yüzden ölçeği sıfıra inen ücretsiz katmanlar
-   (Render/Koyeb ücretsiz web servisleri, Cloud Run varsayılanı) bu iş için
-   uygun değil — servis "çalışıyor" görünür ama satılan özellik çalışmaz.
-
-   Doğrulamanın kendisi 0,1–0,3 saniye sürer. Yani 15 saniyelik bütçe
-   hesaplama için değil; tamamı ağ gecikmesi ve uyanma payıdır. Servisin
-   sürekli açık olması şartı buradan geliyor, CPU gücünden değil.
+Tek şart veri yerleşiminin AB'de olması: fatura XML'i işleniyor. Gizlilik
+politikası bunu açıkça taahhüt etmiyor, ama AB e-fatura uyumluluğu satan bir
+üründe verinin AB dışına çıkması satışta size sorulur.
 
 Servis durum tutmaz. Yük artarsa aynı imajdan ikinci bir kopya çalıştırmak
 yeterlidir; paylaşılan bir veritabanı yoktur.
 
-#### Ücretsiz: Oracle Cloud Always Free
+#### Ücretsiz katmanın iki bedeli — ve nasıl karşılandığı
 
-İki şartı da karşılayan ücretsiz seçenek. Frankfurt (`eu-frankfurt-1`) bölgesi,
-Ampere A1 (ARM) makine, sürekli açık. Haziran 2026'dan beri ücretsiz sınır
-2 OCPU / 12 GB; bu servis için gerekenin kat kat üstünde.
+Bunlar ölçüldü, tahmin değil.
+
+**Uykuya dalma.** Ücretsiz servis 15 dakika atıl kalınca duruyor; ilk isteğin
+uyanması 50 saniyeyi buluyor. Eklenti bunu tek bir zaman aşımıyla karşılasaydı
+seyrek gelen her istek boşa giderdi. Bu yüzden süre bağlama göre ayrıldı:
+etkileşimli istekte 15 saniye (bir yönetici ekran başında bekliyor, ekran
+kilitlenmemeli), kuyruktaki işte 90 saniye (orada kimse beklemiyor). Ayrımı
+`Scheduler::is_running_in_background()` kuruyor.
+
+Pratik sonucu: **otomatik üretim** (sipariş tamamlanınca, Pro) soğuk servisi
+bekler ve doğrular. Sipariş ekranındaki **elle üretim** soğuk servise denk
+gelirse "doğrulama yapılamadı" der, belge yine üretilir; ikinci deneme
+ısınmış servise gider ve doğrular.
+
+**Geçiş anında 404.** Servis dururken kenar sunucu isteği bekletmek yerine
+birkaç dakika 404 döndürüyor. Ölçüm: çalışan bir servis önce 200, sonra
+~2 dakika 404, sonra yine 200. Eklenti kesin bir HTTP durumuyla dönen geçici
+hatalarda (404, 5xx) 3 saniye sonra bir kez daha deniyor. Zaman aşımında
+denemiyor — orada bütçenin tamamı zaten harcanmıştır.
+
+**Hız.** 0,1 CPU'da doğrulama 4,2 saniye sürüyor (güçlü bir makinede
+0,1–0,3 sn). Isınmış serviste 15 saniyelik bütçeye sığıyor, ama pay dar.
+
+Bu üçü, ücretsiz katmanı çalışır kılıyor; ortadan kaldırmıyor. Sürekli açık
+bir makine ($7/ay Render Starter ya da ~4 €/ay Hetzner) üçünü de sıfırlar.
+
+#### Kalıcı ücretsiz alternatif: Oracle Cloud Always Free
+
+Uykuya dalmayan tek kalıcı ücretsiz seçenek. Frankfurt (`eu-frankfurt-1`)
+bölgesi, Ampere A1 (ARM) makine, sürekli açık. Haziran 2026'dan beri ücretsiz
+sınır 2 OCPU / 12 GB; bu servis için gerekenin kat kat üstünde. Yukarıdaki üç
+bedeli de ortadan kaldırır, ama kendi riskini getirir (aşağıda).
+
+Bu yola geçilirse `compose.yml` ve `Caddyfile` kullanılır; Render'da ikisi de
+devrede değildir, TLS'i ve yönlendirmeyi Render kendi yapar.
 
 İmaj ARM'de sorunsuz çalışır: `node:22-slim` çok mimarili ve hem `saxon-js`
 hem `xslt3` saf JavaScript'tir, derlenen bir ikili yoktur.
