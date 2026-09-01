@@ -85,6 +85,6 @@ jobs:
 
       - name: Self-check against an official example
         working-directory: validator
-        env:
-          LICENSE_SECRET: ci-secret-0123456789
+        # Oz-test validate() fonksiyonunu dogrudan cagirir; HTTP katmani ve
+        # dolayisiyla lisans anahtari devreye girmez.
         run: node scripts/selftest.mjs
