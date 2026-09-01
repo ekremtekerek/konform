@@ -41,6 +41,27 @@ final class Scheduler {
 	public const GROUP = 'konform';
 
 	/**
+	 * Şu an kuyruktan çalışan bir iş var mı.
+	 *
+	 * Arka planda kimse ekran başında beklemiyor, dolayısıyla doğrulama
+	 * servisine tanınan süre uzatılabilir. Action Scheduler'ın bulunmadığı
+	 * senkron yedek yolda bu bayrak KURULMAZ: orada bir müşterinin ödeme
+	 * isteği ya da bir yöneticinin ekranı bekliyor olabilir.
+	 *
+	 * @var bool
+	 */
+	private static bool $in_background = false;
+
+	/**
+	 * Kuyruktan çalışan bir işin içinde miyiz.
+	 *
+	 * @return bool
+	 */
+	public static function is_running_in_background(): bool {
+		return self::$in_background;
+	}
+
+	/**
 	 * Kancaları kaydeder.
 	 *
 	 * @return void
@@ -87,7 +108,7 @@ final class Scheduler {
 		$args = array( 'refund_id' => $refund_id );
 
 		if ( ! self::is_available() ) {
-			self::run_credit_note( $refund_id );
+			self::generate_credit_note_for( $refund_id );
 
 			return;
 		}
@@ -108,6 +129,24 @@ final class Scheduler {
 	 * @return void
 	 */
 	public static function run_credit_note( int $refund_id ): void {
+		self::$in_background = true;
+
+		try {
+			self::generate_credit_note_for( $refund_id );
+		} finally {
+			self::$in_background = false;
+		}
+	}
+
+	/**
+	 * İade faturasını üretir.
+	 *
+	 * Run_credit_note() ile ayrı tutulur; gerekçe generate_for() ile aynıdır.
+	 *
+	 * @param int $refund_id İade kimliği.
+	 * @return void
+	 */
+	private static function generate_credit_note_for( int $refund_id ): void {
 		$refund = \wc_get_order( $refund_id );
 
 		if ( ! $refund instanceof \WC_Order_Refund ) {
@@ -165,7 +204,7 @@ final class Scheduler {
 
 		if ( ! self::is_available() ) {
 			// Action Scheduler yoksa senkron uretiriz; sessizce atlamaktan iyidir.
-			self::run( $order_id );
+			self::generate_for( $order_id );
 
 			return;
 		}
@@ -187,6 +226,25 @@ final class Scheduler {
 	 * @return void
 	 */
 	public static function run( int $order_id ): void {
+		self::$in_background = true;
+
+		try {
+			self::generate_for( $order_id );
+		} finally {
+			self::$in_background = false;
+		}
+	}
+
+	/**
+	 * Belgeyi üretir.
+	 *
+	 * Run() ile ayrı tutulur: run() kuyruk kancasıdır ve arka plan bayrağını
+	 * kurar, bu ise Action Scheduler yokken senkron yedek yoldan da çağrılır.
+	 *
+	 * @param int $order_id Sipariş kimliği.
+	 * @return void
+	 */
+	private static function generate_for( int $order_id ): void {
 		$order = \wc_get_order( $order_id );
 
 		if ( ! $order instanceof \WC_Order ) {
