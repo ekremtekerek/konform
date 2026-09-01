@@ -16,6 +16,7 @@ use Konform\Preflight\Severity;
 use Konform\Storage\Archive;
 use Konform\Storage\AuditLog;
 use Konform\Storage\Document;
+use Konform\Validation\HostedValidator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -74,24 +75,41 @@ final class Generator {
 			/*
 			 * Belge ALICININ dilinde uretilir. Locale::render() disinda
 			 * switch_to_locale() cagrilmaz; bkz. docs/I18N.md.
-			 *
-			 * PDF de ayni blok icinde uretilir: uzerindeki etiketler alicinin
-			 * dilinde olmali, yoneticinin degil.
 			 */
-			$content = Locale::render(
+			$xml = Locale::render(
 				$locale,
-				static function () use ( $builder, $invoice, $profile, $order ): string {
-					if ( ! $profile->is_hybrid() ) {
-						return $builder->build_xml( $invoice, $profile );
-					}
+				static fn (): string => $builder->build_xml( $invoice, $profile )
+			);
+		} catch ( \Throwable $error ) {
+			AuditLog::record( AuditLog::EVENT_FAILED, $order_id, 0, $error->getMessage() );
 
-					return $builder->build_hybrid(
+			return null;
+		}
+
+		/*
+		 * Resmi kural setine gore dogrulama. PDF'e gomulmeden ONCE yapilir;
+		 * dogrulanan sey gonderilecek olanin ta kendisi olmali.
+		 */
+		$validation = ( new HostedValidator() )->validate( $xml );
+
+		if ( $validation->blocks() ) {
+			AuditLog::record( AuditLog::EVENT_INVALID, $order_id, 0, $validation->summary() );
+
+			return null;
+		}
+
+		try {
+			// PDF de belge dilinde uretilir: etiketler alicinin dilinde olmali.
+			$content = $profile->is_hybrid()
+				? Locale::render(
+					$locale,
+					static fn (): string => $builder->build_hybrid(
 						$invoice,
 						$profile,
 						PdfRenderer::render( $order, $invoice )
-					);
-				}
-			);
+					)
+				)
+				: $xml;
 		} catch ( \Throwable $error ) {
 			AuditLog::record( AuditLog::EVENT_FAILED, $order_id, 0, $error->getMessage() );
 
@@ -122,7 +140,7 @@ final class Generator {
 			AuditLog::EVENT_GENERATED,
 			$order_id,
 			$document->id,
-			sprintf( '%s, %s, version %d', $profile->label(), $locale, $document->version )
+			sprintf( '%s, %s, version %d — %s', $profile->label(), $locale, $document->version, $validation->summary() )
 		);
 
 		/**

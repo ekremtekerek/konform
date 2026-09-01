@@ -75,7 +75,69 @@ final class OrderMapper {
 			$buyer,
 			$lines,
 			self::tax_subtotals( $lines ),
-			(float) $order->get_total_refunded() > 0.0 ? 0.0 : self::paid_amount( $order )
+			(float) $order->get_total_refunded() > 0.0 ? 0.0 : self::paid_amount( $order ),
+			self::delivery_date( $order, $issue_date ),
+			self::ship_to( $order, $buyer )
+		);
+	}
+
+	/**
+	 * Fiili teslim tarihi. BT-72.
+	 *
+	 * AB içi teslimlerde (kategori K) bu alan ZORUNLUDUR — BR-IC-11. Eksikliği
+	 * resmi Schematron tarafından ölümcül hata olarak raporlanır.
+	 *
+	 * @param \WC_Order          $order      Sipariş.
+	 * @param \DateTimeImmutable $fallback   Bulunamazsa kullanılacak tarih.
+	 * @return \DateTimeImmutable
+	 */
+	private static function delivery_date( \WC_Order $order, \DateTimeImmutable $fallback ): \DateTimeImmutable {
+		foreach ( array( $order->get_date_completed(), $order->get_date_paid() ) as $candidate ) {
+			if ( $candidate instanceof \WC_DateTime ) {
+				return new \DateTimeImmutable( $candidate->date( 'Y-m-d' ) );
+			}
+		}
+
+		return $fallback;
+	}
+
+	/**
+	 * Teslim adresi. BG-13, ülke kodu BT-80.
+	 *
+	 * AB içi teslimlerde ülke kodu ZORUNLUDUR — BR-IC-12. Kargo adresi boşsa
+	 * (dijital ürün, kargosuz sipariş) fatura adresine düşülür; teslim yine de
+	 * o ülkeye yapılmış sayılır.
+	 *
+	 * @param \WC_Order $order Sipariş.
+	 * @param Party     $buyer Alıcı.
+	 * @return Party
+	 */
+	private static function ship_to( \WC_Order $order, Party $buyer ): Party {
+		$country = trim( (string) $order->get_shipping_country() );
+
+		if ( '' === $country ) {
+			return $buyer;
+		}
+
+		$name    = trim( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() );
+		$company = trim( (string) $order->get_shipping_company() );
+
+		$address = trim( (string) $order->get_shipping_address_1() );
+		$line_2  = trim( (string) $order->get_shipping_address_2() );
+
+		if ( '' !== $line_2 ) {
+			$address .= ' ' . $line_2;
+		}
+
+		return new Party(
+			'' !== $company ? $company : ( '' !== $name ? $name : $buyer->name ),
+			$country,
+			'',
+			$address,
+			(string) $order->get_shipping_city(),
+			(string) $order->get_shipping_postcode(),
+			'',
+			'' !== $company
 		);
 	}
 

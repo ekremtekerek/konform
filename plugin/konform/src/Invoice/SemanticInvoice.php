@@ -23,15 +23,17 @@ final class SemanticInvoice {
 	/**
 	 * Kurucu.
 	 *
-	 * @param string             $number        Fatura numarası. BT-1.
-	 * @param \DateTimeImmutable $issue_date Düzenlenme tarihi. BT-2.
-	 * @param string             $type_code     Belge tipi kodu (UNTDID 1001). BT-3.
-	 * @param string             $currency      Para birimi (ISO 4217). BT-5.
-	 * @param Party              $seller        Satıcı. BG-4.
-	 * @param Party              $buyer         Alıcı. BG-7.
-	 * @param Line[]             $lines         Fatura satırları. BG-25.
-	 * @param TaxSubtotal[]      $tax_subtotals Vergi kırılımı. BG-23.
-	 * @param float              $paid_amount   Ödenmiş tutar. BT-113.
+	 * @param string                  $number        Fatura numarası. BT-1.
+	 * @param \DateTimeImmutable      $issue_date Düzenlenme tarihi. BT-2.
+	 * @param string                  $type_code     Belge tipi kodu (UNTDID 1001). BT-3.
+	 * @param string                  $currency      Para birimi (ISO 4217). BT-5.
+	 * @param Party                   $seller        Satıcı. BG-4.
+	 * @param Party                   $buyer         Alıcı. BG-7.
+	 * @param Line[]                  $lines         Fatura satırları. BG-25.
+	 * @param TaxSubtotal[]           $tax_subtotals Vergi kırılımı. BG-23.
+	 * @param float                   $paid_amount   Ödenmiş tutar. BT-113.
+	 * @param \DateTimeImmutable|null $delivery_date Fiili teslim tarihi. BT-72.
+	 * @param Party|null              $ship_to       Teslim adresi. BG-13.
 	 */
 	public function __construct(
 		public readonly string $number,
@@ -43,6 +45,8 @@ final class SemanticInvoice {
 		public readonly array $lines,
 		public readonly array $tax_subtotals,
 		public readonly float $paid_amount = 0.0,
+		public readonly ?\DateTimeImmutable $delivery_date = null,
+		public readonly ?Party $ship_to = null,
 	) {}
 
 	/**

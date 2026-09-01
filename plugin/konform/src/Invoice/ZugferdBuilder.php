@@ -114,6 +114,7 @@ final class ZugferdBuilder implements DocumentBuilder {
 		$this->apply_buyer_reference( $document, $invoice, $profile );
 		$this->apply_seller( $document, $invoice->seller );
 		$this->apply_buyer( $document, $invoice->buyer );
+		$this->apply_delivery( $document, $invoice );
 		$this->apply_lines( $document, $invoice );
 		$this->apply_tax_breakdown( $document, $invoice );
 		$this->apply_summation( $document, $invoice );
@@ -216,6 +217,41 @@ final class ZugferdBuilder implements DocumentBuilder {
 
 		if ( '' !== $buyer->email ) {
 			$document->setDocumentBuyerContact( null, null, null, null, $buyer->email );
+		}
+	}
+
+	/**
+	 * Teslim bilgisini yazar.
+	 *
+	 * AB içi teslimlerde (vergi kategorisi K) bu alanlar ZORUNLUDUR:
+	 *   BR-IC-11 — fiili teslim tarihi (BT-72) veya fatura dönemi (BG-14)
+	 *   BR-IC-12 — teslim ülkesi kodu (BT-80)
+	 *
+	 * Bu iki kural, barındırılan doğrulama servisi devreye girdiğinde kendi
+	 * çıktımızda yakalandı; onsuz belge resmi doğrulayıcıda ölümcül hata
+	 * veriyordu. Diğer kategorilerde de yazmak zararsız ve daha bilgilendirici.
+	 *
+	 * @param ZugferdDocumentBuilder $document Belge.
+	 * @param SemanticInvoice        $invoice  Fatura.
+	 * @return void
+	 */
+	private function apply_delivery( ZugferdDocumentBuilder $document, SemanticInvoice $invoice ): void {
+		$ship_to = $invoice->ship_to;
+
+		if ( $ship_to instanceof Party ) {
+			$document->setDocumentShipTo( $ship_to->name );
+			$document->setDocumentShipToAddress(
+				$ship_to->address,
+				null,
+				null,
+				$ship_to->postcode,
+				$ship_to->city,
+				$ship_to->country
+			);
+		}
+
+		if ( $invoice->delivery_date instanceof \DateTimeImmutable ) {
+			$document->setDocumentSupplyChainEvent( $invoice->delivery_date );
 		}
 	}
 

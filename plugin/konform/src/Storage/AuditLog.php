@@ -43,6 +43,11 @@ final class AuditLog {
 	public const EVENT_QUEUED = 'queued';
 
 	/**
+	 * Resmi kural setine göre geçersiz bulundu.
+	 */
+	public const EVENT_INVALID = 'invalid';
+
+	/**
 	 * Olay kaydeder.
 	 *
 	 * @param string $event       Olay türü.
@@ -107,6 +112,7 @@ final class AuditLog {
 			self::EVENT_FAILED     => __( 'Generation failed', 'konform' ),
 			self::EVENT_DOWNLOADED => __( 'Document downloaded', 'konform' ),
 			self::EVENT_QUEUED     => __( 'Queued for generation', 'konform' ),
+			self::EVENT_INVALID    => __( 'Rejected by official validation', 'konform' ),
 			default                => $event,
 		};
 	}

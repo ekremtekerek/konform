@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-01T07:14:38+00:00\n"
+"POT-Creation-Date: 2026-09-01T07:39:07+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: konform\n"
@@ -642,18 +642,22 @@ msgstr ""
 msgid "For information"
 msgstr ""
 
-#: src/Storage/AuditLog.php:106
+#: src/Storage/AuditLog.php:111
 msgid "Document generated"
 msgstr ""
 
-#: src/Storage/AuditLog.php:107
+#: src/Storage/AuditLog.php:112
 msgid "Generation failed"
 msgstr ""
 
-#: src/Storage/AuditLog.php:108
+#: src/Storage/AuditLog.php:113
 msgid "Document downloaded"
 msgstr ""
 
-#: src/Storage/AuditLog.php:109
+#: src/Storage/AuditLog.php:114
 msgid "Queued for generation"
+msgstr ""
+
+#: src/Storage/AuditLog.php:115
+msgid "Rejected by official validation"
 msgstr ""

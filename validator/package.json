@@ -1,0 +1,19 @@
+{
+  "name": "konform-validator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hosted EN 16931 Schematron validation for Konform.",
+  "scripts": {
+    "build:rules": "node scripts/build-rules.mjs",
+    "start": "node src/server.js",
+    "test": "node scripts/selftest.mjs"
+  },
+  "devDependencies": {
+    "xslt3": "^2.7.0"
+  },
+  "dependencies": {
+    "saxon-js": "^2.7.0"
+  },
+  "main": "src/server.js"
+}

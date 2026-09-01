@@ -21,6 +21,9 @@ node_modules/
 /dist/
 *.zip
 
+# Test ciktilari
+/plugin/konform/tests/out-*.xml
+
 # Arac ciktilari
 .phpunit.result.cache
 /.phpcs-cache

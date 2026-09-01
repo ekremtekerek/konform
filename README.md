@@ -5,7 +5,7 @@ yasal geçerli e-faturaya çevirir ve satıcının kendi sağlayıcısına tesli
 
 | | |
 |---|---|
-| Durum | Faz 2 tamam — Factur-X PDF/A-3 üretiliyor |
+| Durum | Faz 3 tamam — resmi EN 16931 doğrulaması çalışıyor |
 | Sürüm | `0.1.0-dev` |
 | Gereksinim | PHP 8.2+, WordPress 6.5+, WooCommerce |
 | Lisans | GPL-2.0-or-later |
@@ -30,13 +30,14 @@ konform/
 │   │   ├── Pdf/               PDF kaynakları (eklenti / yerleşik)
 │   │   ├── Preflight/         Tarayıcı, rapor, 5 kural
 │   │   ├── Storage/           Arşiv, denetim izi, şema
+│   │   ├── Validation/        Barındırılan doğrulayıcı istemcisi
 │   │   ├── Queue/             Action Scheduler bağlantısı
 │   │   └── Admin/             Ön uçuş sayfası, sipariş kutusu
 │   ├── languages/             .pot ve çeviriler
 │   ├── vendor-prefixed/       Strauss çıktısı (yapı artefaktı)
 │   └── tests/                 smoke.php, seed.php
 ├── bin/                       setup.sh, post-strauss.php
-├── worker/                    Doğrulama servisi (Faz 3, Cloudflare)
+├── validator/                 Doğrulama servisi (Node + Saxon-JS)
 ├── docs/
 │   ├── SPEC.md                Ürün spesifikasyonu ve yol haritası
 │   ├── I18N.md                Dil mimarisi — kod yazmadan önce oku
@@ -171,7 +172,7 @@ Gerekçe: [`docs/adr/0002-pdf-uretimi.md`](docs/adr/0002-pdf-uretimi.md)
 | **0** | 1–2 | Ortam ve iskelet — *tamamlandı* |
 | **1** | 3–5 | Ön uçuş kontrolü ve EN 16931 eşleyici — *tamamlandı* |
 | **2** | 6–8 | Üretim, PDF/A-3, kuyruk ve arşiv — *tamamlandı* |
-| 3 | 9–10 | Barındırılan doğrulama servisi (Cloudflare + Saxon-JS) |
+| **3** | 9–10 | Barındırılan doğrulama servisi — *tamamlandı (Node, Cloudflare değil)* |
 | 4 | 11–12 | Freemius paketleme, WordPress.org gönderimi |
 
 Ayrıntı: [`docs/SPEC.md`](docs/SPEC.md)
