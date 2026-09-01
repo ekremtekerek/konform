@@ -6,6 +6,7 @@
   "require": {
     "php": ">=8.2",
     "ext-dom": "*",
+    "freemius/wordpress-sdk": "^2.13",
     "horstoeko/zugferd": "^1.0.132"
   },
   "require-dev": {
@@ -61,7 +62,8 @@
         "packages": [
           "symfony/polyfill-ctype",
           "symfony/polyfill-mbstring",
-          "symfony/polyfill-php83"
+          "symfony/polyfill-php83",
+          "freemius/wordpress-sdk"
         ]
       },
       "packages": [

@@ -47,9 +47,25 @@ compose "$STAGE" php vendor/bin/strauss >/dev/null
 compose "." php bin/post-strauss.php "/repo/$STAGE" >/dev/null
 
 echo "==> Gelistirme paketleri temizleniyor"
-# Uretim bagimliliklarinin tamami vendor-prefixed/ altinda; vendor/ icinde
-# yalnizca gelistirme paketleri ve composer'in kendi dosyalari kalir.
-find "$STAGE/vendor" -mindepth 1 -maxdepth 1 -not -name composer -exec rm -rf {} + 2>/dev/null || true
+# vendor/ icinde KALMASI gerekenler: onekLENMEYEN uretim paketleri.
+# Freemius SDK bunlardan biridir - SDK surum tahkimi global sinifi paylasmaya
+# dayanir, oneklenirse lisanslama bozulur. Bu yuzden "composer disinda her seyi
+# sil" yerine uretim listesinden onekli olanlari cikararak calisiyoruz.
+KEEP="$BUILD/.keep-list"
+compose "$STAGE" composer show --no-dev --name-only --no-interaction 2>/dev/null   | tr -d '' | awk 'NF' > "$KEEP"
+
+find "$STAGE/vendor" -mindepth 1 -maxdepth 1 -type d -not -name composer | while read -r dir; do
+  vendor_name="$(basename "$dir")"
+  for pkg in $(ls "$dir" 2>/dev/null); do
+    full="$vendor_name/$pkg"
+    if grep -qx "$full" "$KEEP" 2>/dev/null && [ ! -d "$STAGE/vendor-prefixed/$full" ]; then
+      continue
+    fi
+    rm -rf "$dir/$pkg"
+  done
+  rmdir "$dir" 2>/dev/null || true
+done
+rm -f "$KEEP"
 compose "$STAGE" composer dump-autoload --no-dev --optimize --no-interaction >/dev/null
 
 rm -f "$STAGE/composer.json" "$STAGE/composer.lock"

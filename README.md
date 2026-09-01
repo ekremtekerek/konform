@@ -151,6 +151,11 @@ Betik hangilerinin kaldığını söyler; kabuktan `rm -rf` ile temizleyin. Linu
 
 Gerekçe: [`docs/adr/0001-e-fatura-kutuphanesi.md`](docs/adr/0001-e-fatura-kutuphanesi.md)
 
+**Freemius SDK bir istisnadır ve öneklenmez.** SDK'lar arası sürüm tahkimi
+global `Freemius` sınıfının paylaşılmasına dayanır; öneklemek lisanslamayı ve
+güncellemeleri bozar. `bin/build.sh` bu yüzden "composer dışında her şeyi sil"
+yerine üretim listesinden önekli olanları çıkararak temizlik yapar.
+
 ### 4. PDF'i biz üretmeyi tercih etmiyoruz
 
 Factur-X hibrittir: aynı dosyada PDF + XML. XML bizim işimiz, PDF değil.

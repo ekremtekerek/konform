@@ -99,6 +99,14 @@ function bootstrap(): void {
 		return;
 	}
 
+	/*
+	 * Freemius kopru fonksiyonu GENEL ad alanindadir ve SDK'yi kendisi
+	 * baslatir. Kimlik bilgileri girilmemisse etkisizdir; eklenti Freemius
+	 * olmadan calismaya devam eder.
+	 */
+	require_once __DIR__ . '/freemius.php';
+	konform_fs();
+
 	Plugin::instance()->boot();
 }
 
