@@ -1,5 +1,5 @@
-=== Konform – EU E-Invoicing for WooCommerce ===
-Contributors: cisoft
+=== Konform ===
+Contributors: ekremtekerek
 Tags: e-invoicing, woocommerce, factur-x, xrechnung, en16931
 Requires at least: 6.5
 Tested up to: 7.1

@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       Konform – EU E-Invoicing for WooCommerce
+ * Plugin Name:       Konform
  * Plugin URI:        https://github.com/ekremtekerek/konform
  * Description:       Turns WooCommerce orders into legally valid e-invoices for the seller's country and delivers them through the seller's own e-invoicing provider.
  * Version:           0.1.0
@@ -12,6 +12,14 @@
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       konform
  * Domain Path:       /languages
+ *
+ * Adin neden kisa oldugu: WordPress.org slug'i BU basliktan turetiyor, slug
+ * onaydan sonra degistirilemiyor ve metin alani slug ile birebir ayni olmak
+ * zorunda. "Konform - EU E-Invoicing for WooCommerce" gonderilseydi slug
+ * konform-eu-e-invoicing-for-woocommerce olurdu; metin alanimiz konform
+ * oldugu icin translate.wordpress.org'dan gelen ceviriler hicbir zaman
+ * yuklenmezdi. Gorunen ad onaydan sonra slug'a dokunmadan uzatilabilir -
+ * sira ve gerekce docs/RELEASE.md'de.
  *
  * @package Konform
  */

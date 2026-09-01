@@ -119,6 +119,31 @@ Yalnızca ücretsiz sürüm gönderilir; Pro Freemius üzerinden dağıtılır.
 2. Aynı zip yüklenir.
 3. İnceleme sırası birkaç gün ile birkaç hafta arasındadır.
 
+### Slug — geri dönüşü yok, önce bunu okuyun
+
+WordPress.org slug'ı **ana eklenti dosyasındaki `Plugin Name` başlığından**
+türetir ve **onaydan sonra değiştirilemez**. Metin alanı da slug ile birebir
+aynı olmak zorundadır.
+
+Bu yüzden gönderimde ad kasıtlı olarak kısadır: `Plugin Name: Konform`.
+Uzun adla gönderilseydi slug `konform-eu-e-invoicing-for-woocommerce` olurdu,
+metin alanımız `konform` olduğu için translate.wordpress.org'dan gelen
+çeviriler hiçbir zaman yüklenmezdi — `docs/I18N.md`'nin tamamı boşa giderdi.
+
+Slug gönderimden sonra **bir kez** düzeltilebilir; sonrası için ekiple
+yazışmak gerekir.
+
+Onay geldikten sonra görünen ad slug'a dokunmadan uzatılabilir. İki dosyada
+birden değiştirin, yoksa eklenti ekranıyla dizin farklı ad gösterir:
+
+- `plugin/konform/konform.php` → `Plugin Name:`
+- `plugin/konform/readme.txt` → `=== ... ===` başlığı
+
+Önerilen uzun ad: `Konform – EU E-Invoicing for WooCommerce`.
+
+`Contributors` alanı da gerçek bir WordPress.org kullanıcı adı olmalıdır
+(`ekremtekerek`); uydurma bir değer yazar bağlantısını boşa düşürür.
+
 İnceleme ekibinin sorduğu iki şey bu eklentide zaten karşılanmış durumda:
 `readme.txt` içindeki **External services** bölümü doğrulama servisini,
 gönderilen veriyi ve varsayılan olarak kapalı olduğunu açıkça anlatır;
