@@ -121,6 +121,37 @@ function bootstrap(): void {
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\bootstrap', 5 );
 
 /**
+ * Eklenti silinirken temizliği çalıştırır.
+ *
+ * WordPress kaldırma sırasında yalnızca bu dosyayı yükler; bootstrap()
+ * çalışmaz, dolayısıyla autoloader'ı burada elle yüklemek gerekir.
+ *
+ * @return void
+ */
+function uninstall(): void {
+	if ( ! load_autoloader() ) {
+		return;
+	}
+
+	Uninstall::cleanup();
+}
+
+/*
+ * Temizlik neden Freemius'un after_uninstall kancasina BIRAKILAMAZ:
+ *
+ * Kokte uninstall.php bulundurmak Freemius tarafindan reddediliyor, o yuzden
+ * mantik Konform\Uninstall'a tasindi ve once yalnizca Freemius'un kancasina
+ * baglandi. Temiz bir kurulumda olculdu: Freemius'a baglanilmamis bir sitede
+ * o kanca hic calismiyor ve WordPress'in uninstall_plugins secenegi bos
+ * kaliyor. Yani kullanici "kaldirirken tum verileri sil" demis olsa bile
+ * hicbir sey silinmiyordu.
+ *
+ * WordPress'in kendi kancasi bu yuzden ayrica kaydediliyor. Iki yol da
+ * calissa zarari yok; Uninstall::cleanup() tekrar calistirilabilir.
+ */
+register_uninstall_hook( PLUGIN_FILE, __NAMESPACE__ . '\\uninstall' );
+
+/**
  * HPOS (yüksek performanslı sipariş depolama) uyumluluğunu bildirir.
  *
  * Sipariş verisiyle çalışan bir eklentide bu bildirim zorunludur; aksi hâlde
