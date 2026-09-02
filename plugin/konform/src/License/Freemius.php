@@ -108,6 +108,14 @@ final class Freemius {
 		);
 
 		/*
+		 * Kaldirma temizligi. Eklenti kokunde uninstall.php BULUNAMAZ:
+		 * Freemius kaldirma olayini kendi yonetiyor ve o dosyayi tasiyan
+		 * paketi reddediyor ("Please move its logic to the after_uninstall
+		 * hook and remove the file"). Mantik Konform\Uninstall'da.
+		 */
+		self::$instance->add_action( 'after_uninstall', array( \Konform\Uninstall::class, 'cleanup' ) );
+
+		/*
 		 * SDK'nin yuklendigini bildirir; Freemius bunu bekler.
 		 */
 		\do_action( 'konform_fs_loaded' );
