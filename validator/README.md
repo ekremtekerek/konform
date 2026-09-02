@@ -199,3 +199,24 @@ LICENSE_SECRET=dev npm start
 
 `npm test` HTTP katmanını atlar ve `validate()` fonksiyonunu doğrudan çağırır;
 lisans anahtarı devreye girmez.
+
+---
+
+## İzleme
+
+`/health` ucu GitHub Actions'tan yarım saatte bir kontrol ediliyor
+(`.github/workflows/validator-health.yml`). Başarısız koşum, depo sahibine
+GitHub tarafından e-posta ile bildirilir; ayrı bir izleme servisine hesap
+açmaya gerek yok.
+
+Kontrol iki şeye bakar: servis cevap veriyor mu (`ok:true`) ve kural setini
+gerçekten yüklemiş mi (`rules_version` bildiriliyor mu). İkincisi önemli —
+kural seti okunamazsa servis 200 dönüp doğrulama yapamayabilir.
+
+**Aralığı 15 dakikanın altına çekmeyin.** Render'ın ücretsiz katmanı 15 dakika
+atıl kalınca uykuya dalar; daha sık ping atmak izleme olmaktan çıkıp servisi
+yapay olarak ayakta tutmaya döner. Uykuya dalma kabul edilmiş bir bedeldir,
+dolanılacak bir engel değil.
+
+Not: GitHub, 60 gün hiç etkinlik olmayan depolarda zamanlanmış iş akışlarını
+devre dışı bırakır.

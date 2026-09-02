@@ -1,0 +1,48 @@
+name: Validator health
+
+# Dogrulama servisi Render'in ucretsiz katmaninda calisiyor ve sessizce
+# durabilir: makine geri alinabilir, imaj bozulabilir, kural seti
+# yuklenemeyebilir. Bunu ilk fark eden musteri olmamali.
+#
+# Basarisiz kosum GitHub tarafindan depo sahibine e-posta ile bildirilir;
+# ayri bir izleme servisine hesap acmaya gerek kalmiyor.
+on:
+  schedule:
+    # Yarim saatte bir. ONEMLI: bunu 15 dakikanin ALTINA CEKMEYIN.
+    # Render ucretsiz katmani 15 dakika atil kalinca uykuya dalar; daha sik
+    # ping atmak izleme olmaktan cikip servisi yapay olarak ayakta tutmaya
+    # doner. Uykuya dalma davranisi kabul edilmis bir bedeldir
+    # (bkz. validator/README.md), dolanilacak bir engel degil.
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  health:
+    name: /health
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check the validation service
+        env:
+          ENDPOINT: https://konform-validator.onrender.com/health
+        run: |
+          # Soguk baslangic 50 saniyeyi bulabiliyor; cevap icin bol sure taniyoruz.
+          # Amac "hizli mi" degil, "ayakta mi" sorusuna cevap vermek.
+          body="$(curl -fsS --max-time 120 "$ENDPOINT")" || {
+            echo "Servis cevap vermedi: $ENDPOINT" >&2
+            exit 1
+          }
+
+          echo "$body"
+
+          # Ayakta olmasi yetmez; kural setini gercekten yuklemis olmali.
+          # Kural seti okunamazsa servis 200 donup dogrulama yapamayabilir.
+          echo "$body" | grep -q '"ok":true' || {
+            echo "Beklenen ok:true alanı yok." >&2
+            exit 1
+          }
+
+          echo "$body" | grep -q '"rules_version"' || {
+            echo "Kural seti surumu bildirilmiyor - kural seti yuklenmemis olabilir." >&2
+            exit 1
+          }
