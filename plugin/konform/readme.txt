@@ -1,6 +1,6 @@
 === Konform ===
 Contributors: ekremtekerek
-Tags: e-invoicing, woocommerce, factur-x, xrechnung, en16931
+Tags: woocommerce, e-invoicing, e-rechnung, factur-x, xrechnung
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.2
@@ -13,33 +13,46 @@ Find out which of your orders would be rejected as e-invoices — before the tax
 
 == Description ==
 
-Electronic invoicing — *facture électronique* in France, *elektronische
-Rechnung* in Germany, *faktura ustrukturyzowana* in Poland — is becoming
-mandatory across the EU.
+**Producing e-invoice XML is the easy part. The hard part is that WooCommerce
+order data is rarely clean enough for it** — and you find out weeks later, when
+an invoice comes back rejected and you have to work out which of two hundred
+business rules you broke.
 
-France requires it from September 2026, with small businesses following in
-September 2027. Poland's KSeF already covers most VAT-registered businesses.
-Germany accepts XRechnung and ZUGFeRD today.
+Konform starts at that problem, not at the XML.
 
-The hard part is not producing XML. The hard part is that **WooCommerce order
-data is rarely clean enough** for the EN 16931 standard, and you only find out
-when an invoice is rejected — often weeks later.
-
-Konform starts by telling you the truth about your data.
+Install it, open the report, and it tells you in plain language which of your
+recent orders would be rejected and why. Then it produces the document your
+country requires — and, on the Pro plan, checks it against the **official**
+EN 16931 rule set before it is issued.
 
 = The pre-flight check =
 
-Install the plugin and open the report. It scans your recent orders and tells
-you, in plain language, which ones would be rejected and why:
+This is what the plugin is for. It scans your orders and reports, for each
+problem: what happened, why it matters, the exact rule reference, and where to
+fix it. No jargon, no "invalid order".
 
-* Cross-border EU business sales with no VAT and no customer VAT number
+Real examples from the report:
+
+* *"This is a cross-border EU business sale with no VAT, but the customer VAT
+  number is missing."* — `BT-48 / BR-AE-09`. Without it the exemption cannot be
+  justified and the invoice is rejected.
+* *"The invoice lines add up to €120.00 but the order total is €112.50, a
+  difference of €7.50."* — `BT-112 / BR-CO-15`. Validators reject totals that
+  do not reconcile, even by one cent.
+
+Findings are grouped by root cause, so a store-wide problem is reported once —
+not repeated on every order.
+
+Other things it catches:
+
 * Sales to EU consumers where no VAT was charged at all
-* Invoice totals that do not reconcile with the order total, down to the cent
 * Missing store VAT number, incomplete store address
 * VAT categories that contradict the rate applied
+* Orders with no customer name or no billing country
 
-Every finding says three things: what happened, why it matters (with the exact
-EN 16931 rule), and where to fix it. No jargon, no "invalid order".
+When Konform has to make a judgement call — is this a service or goods? — it
+says so and marks the order for review instead of guessing silently. You can
+override it with a filter.
 
 = Generating documents =
 
@@ -60,9 +73,26 @@ something an audit will forgive.
 
 = What this plugin does not do =
 
-It does not transmit invoices to a tax authority. Konform produces and validates
-the document; delivery goes through your own accredited provider. It also does
-not guarantee legal compliance — no software can.
+**It does not transmit invoices.** Konform produces the document and checks it;
+delivery goes through your own accredited provider — a PDP in France, a Peppol
+access point elsewhere. If you are looking for a plugin that sends invoices to
+a network, this is not it, and you should not buy it expecting that.
+
+It also **does not guarantee legal compliance**. No software can. Whether a
+specific invoice is accepted depends on your registration, your provider and
+rules that change over time. What Konform can honestly promise is narrower and
+more useful: it tells you when your data will fail the standard, and it checks
+the finished document against the official rule set before you issue it.
+
+= Who this is for =
+
+Shops that already know they need e-invoicing and want to find out, now,
+whether their order data is ready — rather than discovering it one rejection
+at a time.
+
+France requires e-invoicing from September 2026, small businesses from
+September 2027. Poland's KSeF already covers most VAT-registered businesses.
+Germany accepts XRechnung and ZUGFeRD today.
 
 == External services ==
 
