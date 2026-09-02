@@ -153,9 +153,10 @@ sudo iptables -I INPUT -p tcp -m multiport --dports 80,443 -j ACCEPT
 sudo netfilter-persistent save 2>/dev/null || sudo service iptables save
 ```
 
-Bu yüzden ücretsiz katmanda `/health` ucuna dışarıdan bir izleme koymak
-isteğe bağlı değildir. Beş dakikada bir kontrol eden ücretsiz bir uptime
-servisi yeterli; makine geri alınırsa aynı gün haberiniz olur.
+Geri alma riski, `/health` izlemesini bu yolda daha da gerekli kılar: makine
+durdurulursa aynı gün haberiniz olur. İzleme zaten kurulu, aşağıdaki
+**İzleme** bölümüne bakın. Oracle'da uykuya dalma olmadığı için aralık
+serbestçe sıkılaştırılabilir.
 
 Riski tamamen kaldırmak isterseniz Hetzner CX22 (Almanya, ~4 €/ay) aynı
 `compose.yml` ile çalışır ve ne kapasite ne geri alma sorunu vardır.
