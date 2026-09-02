@@ -35,14 +35,29 @@ her ikisinin kökünde `konform/` dizini ile.
 
 ### Neden iki paket
 
-Tek fark Freemius SDK'sının `is_premium` bayrağıdır. Kapalıyken SDK'nın
-`can_use_premium_code()` metodu `false` döner ve `Licensing::from_freemius()`
-bunu görüp `Plan::FREE`'ye düşer.
+Tek fark Freemius SDK'sının `is_premium` bayrağıdır.
 
-Sonucu şudur: **ücretsiz pakete geçerli bir lisans girilse bile Pro açılmaz.**
-Freemius'a premium paket yüklemeden satış açmak, parayı alıp hiçbir şey
-vermemek demektir. Bir kez bu duruma düşüldü; satış açıldı ama Deployment
-boştu ve yüklenecek paket de `is_premium => false` idi.
+**Bu bayrak bir özellik kapısı DEĞİLDİR.** Önce öyle sanıldı, ölçümle
+düzeltildi. SDK'nın tanımı şu:
+
+```php
+function can_use_premium_code() {
+    return $this->is_trial() || $this->has_features_enabled_license();
+}
+```
+
+`is_premium`'a hiç bakmıyor. Yerel kurulumda ölçüldü: `is_premium => false`
+olan yapıda, lisans varken `can_use_premium_code()` **true** dönüyor ve
+`Licensing::plan()` **pro** veriyor.
+
+Bayrağın işi, çalışan yapının hangisi olduğunu işaretlemektir. SDK güncelleme
+isteğinde `is_premium() || _can_download_premium()` diye bakar ve müşterinin
+indirdiği ürün premium pakettir. Freemius'a yüklenen zip bu yüzden premium
+olmalıdır; aksi hâlde sürümler ücretsiz yapı olarak dağıtılır.
+
+**Asıl risk başkaydı ve gerçekti:** satış bir kez açıldığında Deployment
+tamamen boştu ("No deployments yet"). Ödeme yapan kişinin indirebileceği
+hiçbir paket yoktu. Satışı kapatmayı gerektiren buydu.
 
 Bayrak yalnızca hazırlık dizinindeki kopyada açılır; depodaki kaynak ücretsiz
 sürümdür ve öyle kalır. `sed` tutmazsa betik hata verip durur — sessizce

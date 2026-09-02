@@ -23,11 +23,17 @@ STAGE="$BUILD/konform"
 #   bash bin/build.sh              -> ucretsiz surum, WordPress.org'a gider
 #   bash bin/build.sh --premium    -> ucretli surum, Freemius'a gider
 #
-# Fark yalnizca Freemius SDK'sinin is_premium bayragidir. O bayrak kapaliyken
-# SDK'nin can_use_premium_code() metodu false doner; Licensing::from_freemius()
-# de bunu gorup Plan::FREE'ye duser. Yani ucretsiz pakete lisans girilse bile
-# Pro acilmaz - premium paket olmadan satis yapmak, parayi alip hicbir sey
-# vermemek demektir.
+# Fark yalnizca Freemius SDK'sinin is_premium bayragidir. Bu bayrak bir OZELLIK
+# KAPISI DEGILDIR - o yanilgiya dusulmustu, olcumle duzeltildi:
+#
+#   can_use_premium_code() { return is_trial() || has_features_enabled_license(); }
+#
+# Yani lisansi olan bir kullanicida Pro, is_premium kapali olsa da acilir.
+#
+# Bayragin isi, calisan yapinin hangisi oldugunu isaretlemektir. SDK guncelleme
+# isteginde "is_premium() || _can_download_premium()" diye bakar; premium paket
+# musterinin indirdigi urundur. Freemius'a yuklenen zip bu yuzden premium
+# olmalidir - aksi halde surumler ucretsiz yapi olarak dagitilir.
 PREMIUM=0
 ARGS=()
 
