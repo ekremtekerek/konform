@@ -152,10 +152,14 @@ your customers until you change the release status to Released."*
 1. Deployment'ta yayınlanmış bir **premium** sürüm bulunmalı
 2. Doğrulama servisi ayakta olmalı
 
-Pro
-planın satılan **tek** özelliği resmî doğrulamadır (bkz.
+Pro planın satılan **tek** özelliği resmî doğrulamadır (bkz.
 [ADR 0004](adr/0004-ucretsiz-pro-ayrimi.md)); servis çalışmıyorsa satın alan
 kişi ödediği şeyin tamamını alamaz.
+
+**Üzerine yazma tuzağı:** var olan bir sürümün üstüne yükleme yapıldığında
+Freemius Release Status'ü **`Unreleased`'e geri döndürüyor**. Fark edilmezse
+satış açık kalır ama paket teslim edilmez. Her üzerine yazmadan sonra durumu
+yeniden `Released` yapın.
 
 Servis 1 Eylül 2026'da yayına alındı: `konform-validator.onrender.com`.
 
