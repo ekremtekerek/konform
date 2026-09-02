@@ -25,7 +25,7 @@ $doc->setDocumentInformation(
 	'EUR'
 );
 
-$doc->setDocumentSeller( 'Cisoft', 'FR-SELLER-1' );
+$doc->setDocumentSeller( 'Vendeur SARL', 'FR-SELLER-1' );
 $doc->setDocumentBuyer( 'Acheteur SARL', 'FR-BUYER-1' );
 
 $xml = $doc->getContent();

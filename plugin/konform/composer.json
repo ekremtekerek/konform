@@ -1,5 +1,5 @@
 {
-  "name": "cisoft/konform",
+  "name": "ekremtekerek/konform",
   "description": "EU e-invoicing for WooCommerce. Converts orders into legally valid e-invoices.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
