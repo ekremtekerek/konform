@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Konform - dagitim arsivi uretir (WordPress.org / Freemius).
 #
-# Kullanim: bash bin/build.sh [surum]
+# Kullanim: bash bin/build.sh [surum] [--premium]
 #
 # Uretilen zip'in kokunde "konform/" dizini bulunur; WordPress eklenti
 # arsivlerinin beklenen bicimi budur.
@@ -18,20 +18,51 @@ cd "$(dirname "$0")/.."
 BUILD="build"
 STAGE="$BUILD/konform"
 
-VERSION="${1:-$(grep -oE '^ \* Version: +[0-9A-Za-z.-]+' plugin/konform/konform.php | awk '{print $3}')}"
+# Iki varyant uretilir ve ayrimi tek bir bayrak belirler:
+#
+#   bash bin/build.sh              -> ucretsiz surum, WordPress.org'a gider
+#   bash bin/build.sh --premium    -> ucretli surum, Freemius'a gider
+#
+# Fark yalnizca Freemius SDK'sinin is_premium bayragidir. O bayrak kapaliyken
+# SDK'nin can_use_premium_code() metodu false doner; Licensing::from_freemius()
+# de bunu gorup Plan::FREE'ye duser. Yani ucretsiz pakete lisans girilse bile
+# Pro acilmaz - premium paket olmadan satis yapmak, parayi alip hicbir sey
+# vermemek demektir.
+PREMIUM=0
+ARGS=()
 
-echo "==> Konform $VERSION paketleniyor"
+for arg in "$@"; do
+  if [ "$arg" = "--premium" ]; then
+    PREMIUM=1
+  else
+    ARGS+=("$arg")
+  fi
+done
 
+VERSION="${ARGS[0]:-$(grep -oE '^ \* Version: +[0-9A-Za-z.-]+' plugin/konform/konform.php | awk '{print $3}')}"
+
+if [ "$PREMIUM" = "1" ]; then
+  SUFFIX="-premium"
+  echo "==> Konform $VERSION PREMIUM paketleniyor"
+else
+  SUFFIX=""
+  echo "==> Konform $VERSION paketleniyor"
+fi
+
+# Yalnizca hazirlik dizini silinir, build/ dizini degil: ucretsiz ve premium
+# varyantlar art arda uretiliyor ve ilkinin zip'i ikincisini uretirken
+# silinmemeli.
+#
 # Windows'ta dosya kilidi yuzunden silme gecici olarak basarisiz olabilir ve
 # set -e tum yapiyi dusurur. Birkac kez denenir.
 for attempt in 1 2 3; do
-  rm -rf "$BUILD" 2>/dev/null || true
-  [ -d "$BUILD" ] || break
+  rm -rf "$STAGE" 2>/dev/null || true
+  [ -d "$STAGE" ] || break
   sleep 2
 done
 
-if [ -d "$BUILD" ]; then
-  echo "HATA: $BUILD silinemedi. Docker konteynerleri dosyayi tutuyor olabilir." >&2
+if [ -d "$STAGE" ]; then
+  echo "HATA: $STAGE silinemedi. Docker konteynerleri dosyayi tutuyor olabilir." >&2
   exit 1
 fi
 
@@ -46,6 +77,21 @@ tar -cf - -C plugin/konform \
   --exclude=phpunit.xml.dist \
   --exclude=.phpunit.cache \
   . | tar -xf - -C "$STAGE"
+
+if [ "$PREMIUM" = "1" ]; then
+  # Yalnizca HAZIRLIK dizinindeki kopya degistirilir; depodaki kaynak
+  # ucretsiz surumdur ve oyle kalir.
+  FS_FILE="$STAGE/src/License/Freemius.php"
+
+  sed -i "s/'is_premium'       => false,/'is_premium'       => true,/" "$FS_FILE"
+
+  if ! grep -q "'is_premium'       => true," "$FS_FILE"; then
+    echo "HATA: is_premium bayragi degistirilemedi. Freemius.php'deki hizalama degismis olabilir." >&2
+    exit 1
+  fi
+
+  echo "==> is_premium bayragi acildi"
+fi
 
 compose() { docker compose run --rm -T -w "/repo/$1" composer "${@:2}"; }
 
@@ -110,9 +156,9 @@ rm -f "$STAGE/composer.lock"
 echo "==> Arsivleniyor"
 # zip her makinede kurulu degil (Git Bash'te yok, GNU tar zip uretemez);
 # konteynerdekini kullaniyoruz.
-compose "$BUILD" sh -c "zip -qr konform-$VERSION.zip konform"
+compose "$BUILD" sh -c "zip -qr konform-$VERSION$SUFFIX.zip konform"
 
 echo
-echo "Hazir: $BUILD/konform-$VERSION.zip"
-printf "  boyut : %s KB\n" "$(du -k "$BUILD/konform-$VERSION.zip" | cut -f1)"
-printf "  dosya : %s\n" "$(unzip -l "$BUILD/konform-$VERSION.zip" | tail -1 | awk '{print $2}')"
+echo "Hazir: $BUILD/konform-$VERSION$SUFFIX.zip"
+printf "  boyut : %s KB\n" "$(du -k "$BUILD/konform-$VERSION$SUFFIX.zip" | cut -f1)"
+printf "  dosya : %s\n" "$(unzip -l "$BUILD/konform-$VERSION$SUFFIX.zip" | tail -1 | awk '{print $2}')"

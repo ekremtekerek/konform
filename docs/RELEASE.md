@@ -23,11 +23,33 @@ patlamaz ama WordPress ve Freemius farklı sürüm görür.
 
 ## 2. Paketi üret
 
+**İki ayrı paket üretilir ve karıştırılmamalıdır.**
+
 ```sh
-bash bin/build.sh
+bash bin/build.sh             # ücretsiz  -> WordPress.org
+bash bin/build.sh --premium   # ücretli   -> Freemius
 ```
 
-Üretilen: `build/konform-<sürüm>.zip`, kökünde `konform/` dizini ile.
+Üretilenler: `build/konform-<sürüm>.zip` ve `build/konform-<sürüm>-premium.zip`,
+her ikisinin kökünde `konform/` dizini ile.
+
+### Neden iki paket
+
+Tek fark Freemius SDK'sının `is_premium` bayrağıdır. Kapalıyken SDK'nın
+`can_use_premium_code()` metodu `false` döner ve `Licensing::from_freemius()`
+bunu görüp `Plan::FREE`'ye düşer.
+
+Sonucu şudur: **ücretsiz pakete geçerli bir lisans girilse bile Pro açılmaz.**
+Freemius'a premium paket yüklemeden satış açmak, parayı alıp hiçbir şey
+vermemek demektir. Bir kez bu duruma düşüldü; satış açıldı ama Deployment
+boştu ve yüklenecek paket de `is_premium => false` idi.
+
+Bayrak yalnızca hazırlık dizinindeki kopyada açılır; depodaki kaynak ücretsiz
+sürümdür ve öyle kalır. `sed` tutmazsa betik hata verip durur — sessizce
+ücretsiz paket üretip premium diye yüklemez.
+
+`build.sh` artık `build/` dizininin tamamını değil yalnızca hazırlık dizinini
+siler; aksi hâlde ikinci varyant üretilirken birincinin zip'i uçardı.
 
 Betik sırayla: kaynağı kopyalar (testler ve geliştirme dosyaları hariç),
 bağımlılıkları kurar, Strauss ile `Konform\Vendor\` altına önekler,
@@ -103,9 +125,19 @@ Check bunu **hata** sayar. Güncel sürüm:
 
 ## 4. Freemius'a yükle
 
-Dashboard → Konform → Deployment → Add New Version → zip'i yükle.
+Dashboard → Konform → Deployment → Add New Version → **`-premium` zip'ini**
+yükle. Ücretsiz paketi buraya yüklemeyin; lisans alan müşteride Pro açılmaz.
 
-**"Release plans to users" doğrulama servisi yayında olmadan açılmaz.** Pro
+Yükledikten sonra sürümün **Release Status'ünü `Released` yapın**. Freemius
+uyarıyor: *"The paid version will not be available for download or update for
+your customers until you change the release status to Released."*
+
+**"Release plans to users" iki şart sağlanmadan açılmaz:**
+
+1. Deployment'ta yayınlanmış bir **premium** sürüm bulunmalı
+2. Doğrulama servisi ayakta olmalı
+
+Pro
 planın satılan **tek** özelliği resmî doğrulamadır (bkz.
 [ADR 0004](adr/0004-ucretsiz-pro-ayrimi.md)); servis çalışmıyorsa satın alan
 kişi ödediği şeyin tamamını alamaz.
