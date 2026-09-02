@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Konform tells you which of your WooCommerce orders would be rejected as e-invoices, before you issue them. Factur-X for France, XRechnung for Germany, EN 16931 CII elsewhere.">
+<meta name="color-scheme" content="light dark">
+<title>Konform</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper:      #F6F7F6;
+    --card:       #FFFFFF;
+    --ink:        #12171B;
+    --ink-soft:   #47535D;
+    --rule:       #DFE3E1;
+    --green:      #0F6B55;
+    --green-soft: #9ABEB2;
+    --green-wash: #EAF2EF;
+    --reject:     #8C2F2A;
+    --reject-wash:#F6E9E8;
+    --amber:      #7A5A16;
+    --amber-wash: #F6EFDD;
+
+    --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #0E1214;
+      --card:       #161B1E;
+      --ink:        #E8EDEA;
+      --ink-soft:   #9AA8AF;
+      --rule:       #262E32;
+      --green:      #5FBFA3;
+      --green-soft: #2F5C4E;
+      --green-wash: #14231F;
+      --reject:     #E08A82;
+      --reject-wash:#241715;
+      --amber:      #D7B368;
+      --amber-wash: #221D12;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:      #0E1214;
+    --card:       #161B1E;
+    --ink:        #E8EDEA;
+    --ink-soft:   #9AA8AF;
+    --rule:       #262E32;
+    --green:      #5FBFA3;
+    --green-soft: #2F5C4E;
+    --green-wash: #14231F;
+    --reject:     #E08A82;
+    --reject-wash:#241715;
+    --amber:      #D7B368;
+    --amber-wash: #221D12;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 47rem; margin: 0 auto; padding: 0 1.5rem; }
+
+  section { padding: 4.5rem 0; border-top: 1px solid var(--rule); }
+  section:first-of-type { border-top: 0; }
+
+  h1, h2 { font-family: var(--serif); font-weight: 400; text-wrap: balance; letter-spacing: -0.01em; }
+  h1 { font-size: clamp(2.4rem, 6vw, 3.9rem); line-height: 1.05; margin: 0 0 1.25rem; }
+  h2 { font-size: clamp(1.6rem, 3.4vw, 2.1rem); line-height: 1.15; margin: 0 0 1.5rem; }
+  h3 { font: 500 0.78rem/1.4 var(--sans); letter-spacing: 0.09em; text-transform: uppercase;
+       color: var(--ink-soft); margin: 0 0 1rem; }
+  p { margin: 0 0 1.1rem; max-width: 40rem; }
+  a { color: var(--green); }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+
+  .eyebrow {
+    font: 500 0.78rem/1 var(--mono);
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--green); margin: 0 0 1.75rem;
+  }
+  .lede { font-size: 1.2rem; color: var(--ink-soft); max-width: 36rem; }
+
+  /* --- verdict strip: mirrors the plugin's own report header --- */
+  .verdict {
+    background: var(--card); border: 1px solid var(--rule); border-left: 3px solid var(--reject);
+    border-radius: 3px; padding: 1.6rem 1.75rem; margin: 2.5rem 0 0;
+  }
+  .verdict-line { font-family: var(--serif); font-size: 1.5rem; line-height: 1.25; color: var(--reject); margin: 0 0 1.4rem; }
+  .stats { display: flex; flex-wrap: wrap; gap: 2.25rem; }
+  .stat-n { font: 400 1.9rem/1 var(--sans); font-variant-numeric: tabular-nums; display: block; }
+  .stat-l { font-size: 0.8rem; color: var(--ink-soft); }
+  .n-total { color: var(--ink); }
+  .n-bad   { color: var(--reject); }
+  .n-warn  { color: var(--amber); }
+  .n-ok    { color: var(--green); }
+
+  /* --- finding card: rendered as the plugin renders it --- */
+  .finding {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 3px;
+    padding: 1.4rem 1.6rem; margin: 0 0 1rem;
+  }
+  .badge {
+    display: inline-block; font: 600 0.7rem/1 var(--sans); letter-spacing: 0.02em;
+    padding: 0.35rem 0.55rem; border-radius: 3px; margin-right: 0.6rem; vertical-align: 0.1rem;
+  }
+  .b-bad  { background: var(--reject-wash); color: var(--reject); }
+  .b-warn { background: var(--amber-wash);  color: var(--amber); }
+  .f-title { font-weight: 600; }
+  .f-what { font-weight: 600; margin: 0.9rem 0 0.35rem; }
+  .f-why, .f-fix { color: var(--ink-soft); margin: 0 0 0.35rem; font-size: 0.95rem; }
+  .f-rule { font: 400 0.82rem/1 var(--mono); color: var(--ink-soft); margin: 0.7rem 0 0; }
+
+  ul { padding-left: 1.15rem; margin: 0 0 1.1rem; max-width: 40rem; }
+  li { margin-bottom: 0.5rem; }
+
+  .boundary { border-left: 3px solid var(--green-soft); padding-left: 1.4rem; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.8rem 0.9rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font: 500 0.78rem/1.4 var(--sans); letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-soft); }
+  td.plan { font-weight: 600; white-space: nowrap; }
+  td.price { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink-soft); }
+  .scroll { overflow-x: auto; }
+
+  .cta { display: inline-block; background: var(--green); color: var(--paper);
+         font-weight: 600; text-decoration: none; padding: 0.75rem 1.4rem; border-radius: 3px; }
+  .cta:hover { filter: brightness(1.08); }
+  .cta-note { font-size: 0.88rem; color: var(--ink-soft); margin-top: 0.9rem; }
+
+  footer { border-top: 1px solid var(--rule); padding: 2.5rem 0 4rem; color: var(--ink-soft); font-size: 0.9rem; }
+  code { font: 400 0.88em var(--mono); }
+</style>
+<style>*{box-sizing:border-box}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section>
+    <p class="eyebrow">EU e-invoicing for WooCommerce</p>
+    <h1>Will this invoice be rejected?</h1>
+    <p class="lede">Producing e-invoice XML is the easy part. The hard part is that
+      WooCommerce order data is rarely clean enough for it — and you find out weeks
+      later, when an invoice comes back rejected.</p>
+
+    <div class="verdict">
+      <p class="verdict-line">3 of your last 6 orders would be rejected.</p>
+      <div class="stats">
+        <div><span class="stat-n n-total">6</span><span class="stat-l">Checked</span></div>
+        <div><span class="stat-n n-bad">3</span><span class="stat-l">Would be rejected</span></div>
+        <div><span class="stat-n n-warn">2</span><span class="stat-l">Needs review</span></div>
+        <div><span class="stat-n n-ok">1</span><span class="stat-l">Ready to invoice</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>It starts by telling you the truth about your data</h2>
+    <p>Konform scans your orders and reports each problem in plain language: what
+      happened, why it matters, the exact rule reference, and where to fix it.
+      Not <em>“invalid order”</em>.</p>
+
+    <h3>Straight from the report</h3>
+
+    <div class="finding">
+      <span class="badge b-bad">Would be rejected</span><span class="f-title">Customer identity</span>
+      <p class="f-what">This is a cross-border EU business sale with no VAT, but the customer VAT number is missing.</p>
+      <p class="f-why">When VAT is not charged on an intra-community supply, the buyer VAT identifier is mandatory. Without it the exemption cannot be justified and the invoice is rejected.</p>
+      <p class="f-fix"><strong>How to fix:</strong> Open the order and add the VAT number to the billing details, then start collecting it at checkout.</p>
+      <p class="f-rule">Rule: BT-48 / BR-AE-09</p>
+    </div>
+
+    <div class="finding">
+      <span class="badge b-bad">Would be rejected</span><span class="f-title">Invoice totals</span>
+      <p class="f-what">The invoice lines add up to €120.00 but the order total is €112.50, a difference of €7.50.</p>
+      <p class="f-why">Validators reject an invoice whose totals do not reconcile, even by one cent. This usually comes from an order-level discount, a coupon or a refund that is not represented on any line.</p>
+      <p class="f-rule">Rule: BT-112 / BR-CO-15</p>
+    </div>
+
+    <div class="finding">
+      <span class="badge b-warn">Needs review</span><span class="f-title">VAT category and rate</span>
+      <p class="f-what">This order was treated as an intra-community supply of goods.</p>
+      <p class="f-why">Goods use category K and services use category AE. Konform decides this from whether the items are shippable or virtual, which is a reasonable guess but not always right.</p>
+      <p class="f-rule">Rule: BT-151</p>
+    </div>
+
+    <p>Findings are grouped by root cause, so a store-wide problem is reported once —
+      not repeated on every order. And where Konform has to make a judgement call, it
+      says so instead of guessing silently.</p>
+  </section>
+
+  <section>
+    <h2>Then it produces the document your country requires</h2>
+    <ul>
+      <li><strong>France</strong> — Factur-X: a PDF/A-3 file with the XML embedded inside it</li>
+      <li><strong>Germany</strong> — XRechnung 3.0, pure XML</li>
+      <li><strong>Elsewhere in the EU</strong> — EN 16931 CII</li>
+    </ul>
+    <p>The tax category — standard, reverse charge, intra-community supply, export —
+      is derived from where the seller and the buyer actually are, not guessed from
+      the rate alone.</p>
+    <p>Documents are archived and never overwritten. Regenerating creates a new
+      version and the old one stays, because quietly replacing an issued invoice is
+      not something an audit will forgive. Every file is stored with a hash, so you
+      can prove it has not changed.</p>
+  </section>
+
+  <section>
+    <h2>What it does not do</h2>
+    <div class="boundary">
+      <p><strong>It does not transmit invoices.</strong> Konform produces the document
+        and checks it; delivery goes through your own accredited provider — a PDP in
+        France, a Peppol access point elsewhere. If you are looking for a plugin that
+        sends invoices to a network, this is not it, and you should not buy it
+        expecting that.</p>
+      <p><strong>It does not guarantee legal compliance.</strong> No software can.
+        Whether a specific invoice is accepted depends on your registration, your
+        provider and rules that change over time.</p>
+      <p>What it can honestly promise is narrower and more useful: it tells you when
+        your data will fail the standard, and it checks the finished document against
+        the official rule set before you issue it.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Free and Pro</h2>
+    <p>Everything the plugin itself can do works without a licence — scanning,
+      generating Factur-X and XRechnung, credit notes, archiving, automatic
+      generation when an order completes. Nothing in the code is switched off.</p>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Plan</th><th>Price</th><th>What it adds</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="plan">Free</td>
+            <td class="price">€0</td>
+            <td>Full e-invoicing: pre-flight report, document generation, credit notes, versioned archive with integrity checks.</td>
+          </tr>
+          <tr>
+            <td class="plan">Pro</td>
+            <td class="price">€149/yr</td>
+            <td>Validation against the <strong>official</strong> EN 16931 rule set before a document is issued.</td>
+          </tr>
+          <tr>
+            <td class="plan">Agency</td>
+            <td class="price">€399/yr</td>
+            <td>Everything in Pro, across all the stores you manage.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Pro buys one thing, because it is the one thing the plugin cannot do on its
+      own. The official rule set compiles to XSLT&nbsp;2.0 and PHP’s XSL extension
+      only supports XSLT&nbsp;1.0, so the check runs on a hosted service rather than
+      on your site. It is off by default.</p>
+  </section>
+
+  <section>
+    <h2>Try it on your own orders</h2>
+    <p>The free version answers the only question that matters right now: is your
+      order data ready? Install it, open the report, and find out in a minute.</p>
+    <p><a class="cta" href="https://github.com/ekremtekerek/konform">Source, docs and issues on GitHub</a></p>
+    <p class="cta-note">The free version is awaiting review for the WordPress.org
+      plugin directory. Pro licences are available now through
+      <a href="https://checkout.freemius.com/plugin/38206/plan/63639/">Freemius</a>,
+      who handle payment and EU VAT as merchant of record.</p>
+  </section>
+
+  <footer>
+    <p>Konform is built by Hasan Ekrem Tekerek. Requires WooCommerce and PHP 8.2.
+      Free version licensed GPL v2 or later.</p>
+    <p>Nothing here is tax or legal advice.</p>
+  </footer>
+
+</div>
+</body>
+</html>
