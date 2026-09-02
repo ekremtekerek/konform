@@ -223,3 +223,38 @@ plugins@wordpress.org ile yazışmak gerekir.
 
 Gönderim ekranındaki "Upload updated plugin for review" ile inceleme
 başlamadan düzeltilmiş paket yüklenebilir. Yeni bir gönderim AÇMAYIN.
+
+---
+
+## Temiz kurulum sınavı
+
+**Bunu atlamayın.** Geliştirme kurulumu `plugin/konform` dizinini doğrudan
+bağlar; müşterinin indirdiği paket başka bir şeydir. Bu adım eklenmeden önce
+üretilen paket hiç kurulmamıştı ve ilk denemede gerçek bir hata çıktı:
+kaldırma temizliği hiç çalışmıyordu.
+
+Temiz bir WordPress + WooCommerce ayağa kaldırın (ayrı veritabanı, ayrı hacim,
+eklenti dizini BAĞLANMADAN), sonra:
+
+1. `wp plugin install <zip> --activate` — hatasız kurulmalı
+2. Ürün + sipariş oluşturup `Generator::generate()` çalıştırın — belge
+   üretilmeli, arşiv dosyası diskte olmalı, `is_intact()` doğrulanmalı
+3. `wp option get uninstall_plugins` — eklenti burada görünmeli. Boş `[]`
+   dönüyorsa kaldırma temizliği hiç çalışmayacak demektir.
+4. `konform_delete_data_on_uninstall` seçeneğini açıp
+   `wp plugin uninstall konform --deactivate` çalıştırın, sonra ölçün:
+
+| Ne | Beklenen |
+|---|---|
+| Ayar seçenekleri | silinmiş |
+| `konform_archive_key` | **duruyor** |
+| Arşiv dizini ve dosyaları | **duruyor** |
+| `konform_documents`, `konform_audit` | **duruyor** |
+
+Ayrımın anlamı: kullanıcı **ayarlarını** silmek istedi, **faturalarını**
+değil. Arşiv dosyaları kaldığına göre bütünlüklerini doğrulayan anahtar da
+kalmalıdır.
+
+Windows'ta konteynere yol geçirirken `MSYS_NO_PATHCONV=1` gerekir; yoksa
+Git Bash `/pkg/...` yolunu Windows yoluna çevirir ve WP-CLI "Invalid plugin
+slug" der.
