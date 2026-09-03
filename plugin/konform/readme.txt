@@ -152,9 +152,17 @@ Not on the free plan. On Pro, only to the validation service described under
 
 = Which countries are supported? =
 
-Version 1 targets France (Factur-X, *facture électronique*) and Germany
-(XRechnung, *E-Rechnung*). Poland (KSeF, *faktura ustrukturyzowana*) is next.
-Other EU countries receive EN 16931 CII output.
+France (Factur-X, *facture électronique*) and Germany (XRechnung,
+*E-Rechnung*) are fully supported. Other EU countries receive EN 16931 CII
+output, which is the common semantic standard behind both.
+
+**Poland is not supported**, and it is worth being clear why. KSeF is not just
+a format: an FA(3) invoice does not legally exist until it has been submitted
+to the KSeF platform and given a KSeF number. Producing the file without
+sending it would leave you holding something that looks like an invoice and
+is not one. Since this plugin deliberately does not transmit, supporting
+Poland properly means more than adding a format, and it is not something to
+promise before it is built.
 
 = Is the free version actually usable? =
 
