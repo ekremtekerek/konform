@@ -94,3 +94,17 @@ if ( ! function_exists( 'number_format_i18n' ) ) {
 		return number_format( $number, $decimals );
 	}
 }
+
+if ( ! function_exists( 'wp_json_encode' ) ) {
+	/**
+	 * JSON'a çevirir.
+	 *
+	 * @param mixed $data    Veri.
+	 * @param int   $options Seçenekler.
+	 * @param int   $depth   Derinlik.
+	 * @return string|false
+	 */
+	function wp_json_encode( $data, int $options = 0, int $depth = 512 ) {
+		return json_encode( $data, $options, $depth );
+	}
+}

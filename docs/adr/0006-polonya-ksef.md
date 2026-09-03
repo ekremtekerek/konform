@@ -61,13 +61,21 @@ Reddedilenler:
 ve JSON; birkaç uç için Guzzle ve PSR yığını taşımak gereksiz. `HostedValidator`
 zaten bu deseni kuruyor.
 
+Bu karar korundu ama **beklenmedik bir yerden sınandı**: KSeF, AES anahtarını
+RSA-OAEP/SHA-256 ile sarmalamayı şart koşuyor ve PHP bunu ancak 8.5'te
+yapabiliyor. Eklenti PHP 8.2 istediği için bir çözüm gerekti; phpseclib
+ölçüldü (362 dosya, 3,4 MB) ve reddedildi. Ayrıntı ve gerekçe:
+[ADR 0008](0008-oaep-kendimiz.md).
+
 ## Kademeler
 
-1. **FA(3) üretimi** — yeni `Profile` durumu, yeni `DocumentBuilder`,
+1. **FA(3) üretimi** — ✅ **yapıldı.** `Profile::KSEF`, `Fa3Builder`,
    `SemanticInvoice` → `FakturaType` eşlemesi, yerel XSD doğrulaması.
-   Kimlik bilgisi gerektirmez, çevrimdışı test edilebilir.
-2. **KSeF API istemcisi** — oturum açma, gönderim, durum sorgulama, KSeF
-   numarası ve UPO'nun alınması. `api-test` ortamına karşı.
+   Kimlik bilgisi gerektirmez, çevrimdışı test edilir.
+2. **KSeF API istemcisi** — 🔶 **yazıldı, canlı sınavı bekliyor.** Yetkilendirme
+   (challenge → ksef-token → redeem), oturum açma, şifreli gönderim, durum
+   sorgulama. `api-test` ortamına karşı çalıştırmak bir **KSeF test jetonu**
+   gerektiriyor ve o jeton mağaza sahibinin hesabından alınır.
 3. **Saklama ve arayüz** — KSeF numarasının arşive ve denetim kaydına
    işlenmesi, token ayarı, sipariş ekranında durum.
 4. **Kuyruk ve yeniden gönderim** — reddedilen belge, mükerrer gönderimin
@@ -77,3 +85,52 @@ zaten bu deseni kuruyor.
 desteklememekten kötüdür: kullanıcı "Polonya destekleniyor" görür, belgesini
 alır, elindekinin hukuken var olmadığını sonra öğrenir. Polonya `readme.txt`'de
 ancak 2. kademe bitince duyurulur.
+
+Bunun somut karşılığı: **`Profile::for_country()` içinde `PL` yoktur.**
+`Profile::KSEF` ve `Fa3Builder` vardır ama üretim akışına bağlı değildir.
+
+İlk denemede `'PL' => self::KSEF` eklenmişti ve bu sessiz bir gerileme
+üretiyordu: hiçbir üretici KSEF'i desteklemediği için `Generator::generate()`
+`null` dönüyor, denetim kaydına *"No builder supports profile ksef"* yazıyor ve
+Polonyalı mağaza **bugün aldığı EN 16931 CII belgesini kaybediyordu** — yerine
+geçerli bir şey konmadan. Testlerden hiçbiri bunu görmüyordu, çünkü hepsi
+`Fa3Builder`'ı doğrudan çağırıyordu.
+
+`Fa3BuilderTest::test_poland_still_receives_a_buildable_profile` artık bunu
+tutuyor: PL'nin aldığı profilin yalnızca ne olduğunu değil, gerçekten
+üretilebilir olduğunu da doğruluyor.
+
+## 1. kademede öğrenilenler
+
+Kütüphaneyi okumak iki varsayımı çürüttü; ikisi de kod yazmadan önce yakalandı.
+
+- **`STAWKA_0` diye tek bir değer yok.** FA(3)'te %0, rejime göre üçe ayrılır:
+  yurt içi (`STAWKA_0_KRAJ`), AB içi teslim (`STAWKA_0_WDT`) ve ihracat
+  (`STAWKA_0_EXPORT`). Muafiyet (`ZW`) ile tersine yük (`OO`) ayrı değerlerdir.
+- **Toplam alanları da öyle.** `p1361`, `p1362`, `p1363`, `p137`, `p1310`,
+  `p138` — her biri farklı bir vergi rejimi.
+
+Sonuç: eşleme **orana değil vergi kategorisine** dayanmak zorunda. Yalnızca
+sayısal orana bakan bir eşleme, AB içi teslimi yurt içi sıfır alanına yazardı;
+şema denetiminden geçer ama beyanı bozardı. `Fa3BuilderTest` bunu koruyor.
+
+## Bilinen eksik: muafiyetin hukuki dayanağı
+
+FA(3) `Zwolnienie` bloğunu zorunlu tutar ve iki seçenek sunar: muafiyet yoktur
+(`P_19N`), ya da vardır ve **hukuki dayanağı** yazılır. Dayanak üç alana
+ayrılmıştır:
+
+| Alan | Beklenen |
+|---|---|
+| `P_19A` | Polonya KDV Kanunu'nun ilgili maddesi |
+| `P_19B` | 2006/112/AT yönergesinin ilgili maddesi |
+| `P_19C` | Diğer hukuki dayanak |
+
+Elimizdeki BT-120 metni serbest biçimlidir ve hangisine karşılık geldiğini
+bilemeyiz; bu yüzden şimdilik `P_19C`'ye yazılıyor. Dayanak hiç yoksa üretici
+belge üretmek yerine **duruyor** — muaf bir faturaya "muafiyet yok" demek
+yanlış beyandır.
+
+**Polonya kullanıcıya açılmadan önce bu eşleme Polonya KDV mevzuatına göre
+gözden geçirilmeli.** Muhtemelen yurt içi muafiyetler `P_19A`'ya, AB içi
+işlemler `P_19B`'ye gitmeli.
