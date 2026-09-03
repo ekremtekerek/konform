@@ -79,6 +79,31 @@ Strauss dört bin dosya işler; adım dakikalar sürer, takılmış değildir.
 
 Bunlar CI'nin göremediği, yalnızca üretilmiş pakette görülebilen şeylerdir.
 
+### Önce: paket eksiksiz mi
+
+**Bu denetim atlanamaz.** Windows'ta bind mount, PHP'nin dizin yineleyicisinde
+büyük dizinleri eksik döndürüyor; Strauss sınıf dosyalarını sessizce atlayabilir
+— hata vermeden, `exit 0` dönerek. `Konform\Vendor\*` sınıflarının psr-4
+karşılığı olmadığı, yalnızca classmap'ten çözüldükleri için eksik bir dosya
+doğrudan çalışma anında ölümcül hatadır.
+Ayrıntı: [ADR 0007](adr/0007-bind-mount-dosya-kaybi.md).
+
+Denetimin kendisi bind mount üzerinde çalıştırılırsa aynı tuzağa düşer (ilk
+denemede sınıfların 909'unu saydı, gerçek sayı 959'du). Bu yüzden paket önce
+konteyner içi diske kopyalanır:
+
+```sh
+rm -rf build/verify && mkdir -p build/verify
+( cd build/verify && unzip -q ../konform-*.zip )
+
+docker compose run --rm -T composer sh -c "
+  rm -rf /tmp/pkg && mkdir -p /tmp/pkg
+  cp -r /repo/build/verify/konform /tmp/pkg/konform
+  php /repo/bin/verify-classmap.php /tmp/pkg/konform
+"
+# "EKSIK: 0" beklenir. Aksi halde surum cikarilmaz.
+```
+
 ```sh
 # Bagimlilik izolasyonu: oneksiz sinif sizmamali
 unzip -l build/konform-*.zip | grep -E 'vendor/(horstoeko|jms|smalot|setasign)' 

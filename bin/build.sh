@@ -101,16 +101,12 @@ fi
 
 compose() { docker compose run --rm -T -w "/repo/$1" composer "${@:2}"; }
 
-# composer dump-autoload vendor-prefixed/ dizinini tarar; kurulum sirasinda
-# henuz olusmadigi icin bos olarak hazirlanir.
-mkdir -p "$STAGE/vendor-prefixed"
-
-echo "==> Bagimliliklar kuruluyor"
-compose "$STAGE" composer install --no-interaction >/dev/null
-
-echo "==> Bagimliliklar izole ediliyor (Strauss)"
-compose "$STAGE" php vendor/bin/strauss >/dev/null
-compose "." php bin/post-strauss.php "/repo/$STAGE" >/dev/null
+# Kurulum, Strauss ve otomatik yukleyici uretimi bilerek deps.sh uzerinden
+# calisir: hepsi dizinleri PHP'nin RecursiveDirectoryIterator'uyla gezer ve
+# Windows bind mount'u o yineleyicide buyuk dizinleri eksik dondurur. Dogrudan
+# calistirilirlarsa sinif dosyalari sessizce pakete girmez. Bkz. bin/deps.sh
+echo "==> Bagimliliklar kuruluyor ve izole ediliyor (Strauss)"
+compose "." sh bin/deps.sh "/repo/$STAGE" >/dev/null
 
 echo "==> Gelistirme paketleri temizleniyor"
 # vendor/ icinde KALMASI gerekenler: onekLENMEYEN uretim paketleri.
@@ -147,7 +143,10 @@ find "$STAGE/vendor/composer" -mindepth 1 -maxdepth 1 -type d | while read -r pk
 done
 
 rm -f "$KEEP"
-compose "$STAGE" composer dump-autoload --no-dev --optimize --no-interaction >/dev/null
+# Temizlikten sonra classmap yeniden uretilmeli. Bu adim da izole calisir:
+# Konform\Vendor\* siniflarinin psr-4 karsiligi yoktur, yalnizca classmap'ten
+# cozulurler; budanmis bir classmap calisma aninda olumcul hatadir.
+compose "." sh bin/dump-autoload.sh "/repo/$STAGE" --no-dev --optimize >/dev/null
 
 # composer.lock gitmez; kilit dosyasi gelistirme artefaktidir ve buyuktur.
 #

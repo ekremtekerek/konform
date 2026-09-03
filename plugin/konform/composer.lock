@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "56c43db82db8ec105c118cb9ad0175a9",
+    "content-hash": "520571fb5468bab968a37ff701b5bc9a",
     "packages": [
         {
             "name": "doctrine/instantiator",
@@ -455,6 +455,52 @@
                 "source": "https://github.com/horstoeko/zugferd/tree/v1.0.132"
             },
             "time": "2026-08-30T14:11:24+00:00"
+        },
+        {
+            "name": "intermedia/ksef-fa3",
+            "version": "v1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tommekk83/ksef-fa3.git",
+                "reference": "8f3a09451ac69f427827937328f76b7fd1b97d3d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tommekk83/ksef-fa3/zipball/8f3a09451ac69f427827937328f76b7fd1b97d3d",
+                "reference": "8f3a09451ac69f427827937328f76b7fd1b97d3d",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-libxml": "*",
+                "php": "^8.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Intermedia\\Ksef\\Fa3\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "INTERMEDIA",
+                    "email": "kontakt@gsmservice.pl"
+                }
+            ],
+            "description": "PHP models for KSeF FA(3) with XML serializer and XSD validator",
+            "keywords": [
+                "fa3",
+                "ksef"
+            ],
+            "support": {
+                "issues": "https://github.com/tommekk83/ksef-fa3/issues",
+                "source": "https://github.com/tommekk83/ksef-fa3/tree/v1.0.2"
+            },
+            "time": "2025-10-05T20:12:48+00:00"
         },
         {
             "name": "jms/metadata",

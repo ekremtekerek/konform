@@ -48,6 +48,78 @@ if ( ! is_readable( $composer_file ) ) {
 	exit( 1 );
 }
 
+/**
+ * Dizin yineleyicisinin dosyalari eksiksiz gordugunu dogrular.
+ *
+ * Windows'ta Docker Desktop'in bind mount'u, PHP'nin RecursiveDirectoryIterator
+ * cagrilarinda buyuk dizinleri EKSIK dondurur. Ayni dizinde ve ayni surecte
+ * scandir() 99 dosya sayarken yineleyici 52 gorebiliyor. Strauss, bu betik ve
+ * "composer dump-autoload" dizinleri hep o yineleyiciyle gezer; sonuc, onekli
+ * agaca hic kopyalanmayan sinif dosyalari ve exit 0 donen bir zincirdir.
+ *
+ * Kayip sessiz oldugu icin denetim burada duruyor: sayilar tutmuyorsa devam
+ * etmek, eksik bir paketi uretime gondermek demektir. Bkz. bin/deps.sh
+ *
+ * @param string $dir Taranacak dizin.
+ * @return void
+ */
+function konform_assert_iterator_sees_all( string $dir ): void {
+	if ( ! is_dir( $dir ) ) {
+		return;
+	}
+
+	$iterated = 0;
+
+	foreach ( new RecursiveIteratorIterator(
+		new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS )
+	) as $file ) {
+		if ( $file->isFile() ) {
+			++$iterated;
+		}
+	}
+
+	/*
+	 * scandir() ayni cekirdek cagrisina dayanir ama listeyi tek seferde alir;
+	 * olculdugu kadariyla budanmaya ugramiyor, bu yuzden guvenilir sayim odur.
+	 */
+	$counter = static function ( string $path ) use ( &$counter ): int {
+		$total = 0;
+
+		foreach ( (array) scandir( $path ) as $entry ) {
+			if ( '.' === $entry || '..' === $entry ) {
+				continue;
+			}
+
+			$full   = $path . '/' . $entry;
+			$total += is_dir( $full ) ? $counter( $full ) : 1;
+		}
+
+		return $total;
+	};
+
+	$actual = $counter( $dir );
+
+	if ( $iterated === $actual ) {
+		return;
+	}
+
+	fwrite(
+		STDERR,
+		sprintf(
+			"HATA: dizin yineleyicisi eksik okuyor: %s\n"
+			. "  yineleyici: %d dosya, gercek: %d dosya\n\n"
+			. "Bu, Windows bind mount'unun bilinen davranisidir ve Strauss'un sinif\n"
+			. "dosyalarini sessizce atlamasina yol acar. Zincir konteyner ici diskte\n"
+			. "calistirilmalidir: bin/deps.sh\n",
+			$dir,
+			$iterated,
+			$actual
+		)
+	);
+
+	exit( 1 );
+}
+
 $composer = json_decode( (string) file_get_contents( $composer_file ), true );
 $strauss  = $composer['extra']['strauss'] ?? array();
 
@@ -63,6 +135,11 @@ if ( ! is_dir( $target ) ) {
 	fwrite( STDERR, "Hedef dizin yok: {$target}\nOnce 'composer strauss' calistirin.\n" );
 	exit( 1 );
 }
+
+// Bu betigin kendi adimlari da yineleyiciye dayanir; once zeminin saglam
+// oldugunu dogrula. Strauss zaten calisti, yani kayip olduysa oradadir.
+konform_assert_iterator_sees_all( $plugin_dir . '/vendor' );
+konform_assert_iterator_sees_all( $target );
 
 /**
  * Dizini yinelemeli olarak gezer.
