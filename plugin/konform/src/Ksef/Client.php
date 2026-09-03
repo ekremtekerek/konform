@@ -92,12 +92,32 @@ final class Client {
 	}
 
 	/**
-	 * KSeF'in simetrik anahtar şifreleme sertifikasını indirir.
+	 * Jeton şifrelemede kullanılan sertifikanın kullanım etiketi.
+	 */
+	public const USAGE_TOKEN = 'KsefTokenEncryption';
+
+	/**
+	 * Simetrik anahtar şifrelemede kullanılan sertifikanın kullanım etiketi.
+	 */
+	public const USAGE_SYMMETRIC_KEY = 'SymmetricKeyEncryption';
+
+	/**
+	 * KSeF'in açık anahtar sertifikasını indirir.
 	 *
+	 * KSeF BIRDEN COK sertifika dondurur ve her biri farkli is icindir; canli
+	 * ortamdan alinan yanitta ikisi var:
+	 *
+	 *   KsefTokenEncryption    - kimlik dogrulamada JETONU sifrelemek icin
+	 *   SymmetricKeyEncryption - oturumda AES ANAHTARINI sarmalamak icin
+	 *
+	 * Yanlis olani secmek sessiz bir hata degil: karsi taraf cozemez ve islem
+	 * reddedilir. Bu yuzden kullanim etiketi cagiranin acikca sectigi bir sey.
+	 *
+	 * @param string $usage Kullanım etiketi.
 	 * @return string PEM biçiminde sertifika.
 	 * @throws \RuntimeException Sertifika alınamazsa.
 	 */
-	public function public_key_certificate(): string {
+	public function public_key_certificate( string $usage = self::USAGE_SYMMETRIC_KEY ): string {
 		$response = $this->send( 'GET', '/security/public-key-certificates', null, false );
 
 		$certificates = $response->json();
@@ -107,14 +127,17 @@ final class Client {
 				continue;
 			}
 
-			$usage = $certificate['usage'] ?? array();
+			$usages = $certificate['usage'] ?? array();
 
-			if ( is_array( $usage ) && in_array( 'SymmetricKeyEncryption', $usage, true ) ) {
+			if ( is_array( $usages ) && in_array( $usage, $usages, true ) ) {
 				return $this->to_pem( (string) ( $certificate['certificate'] ?? '' ) );
 			}
 		}
 
-		throw new \RuntimeException( 'KSeF did not return a certificate for symmetric key encryption.' );
+		throw new \RuntimeException(
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Mesaj gunluge gider, HTML'e degil.
+			sprintf( 'KSeF did not return a certificate for %s.', $usage )
+		);
 	}
 
 	/**
@@ -122,7 +145,7 @@ final class Client {
 	 *
 	 * @param string $ksef_token   Mağaza sahibinin KSeF jetonu.
 	 * @param string $nip          Satıcının NIP'i.
-	 * @param string $certificate  KSeF açık anahtar sertifikası (PEM).
+	 * @param string $certificate  KSeF sertifikası; USAGE_TOKEN etiketli olan.
 	 * @return void
 	 * @throws \RuntimeException Doğrulama başarısızsa.
 	 */

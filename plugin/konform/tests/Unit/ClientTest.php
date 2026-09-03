@@ -279,34 +279,74 @@ final class ClientTest extends TestCase {
 	}
 
 	/**
-	 * Sertifika listesinden doğru kullanım seçilir.
+	 * Sertifika, istenen kullanıma göre seçilir.
 	 *
-	 * KSeF birden çok sertifika döndürür ve hepsi farklı iş içindir. Yanlış
-	 * olanı seçmek, oturumun reddedilmesiyle sonuçlanır.
+	 * KSeF iki sertifika döndürüyor ve farklı işler için: jetonu şifrelemek
+	 * (KsefTokenEncryption) ve AES anahtarını sarmalamak
+	 * (SymmetricKeyEncryption). Canlı yanıt kontrol edilene kadar bu metot
+	 * her zaman simetrik olanı veriyordu; yani kimlik doğrulama YANLIŞ
+	 * sertifikayla şifreleme yapardı.
 	 *
 	 * @return void
 	 */
-	public function test_the_symmetric_key_certificate_is_selected(): void {
-		$body = (string) wp_json_encode(
+	public function test_the_certificate_is_selected_by_usage(): void {
+		foreach (
+			array(
+				Client::USAGE_SYMMETRIC_KEY => 'simetrik',
+				Client::USAGE_TOKEN         => 'jeton',
+			) as $usage => $expected
+		) {
+			$client = new Client(
+				new RecordingTransport( array( new Response( 200, $this->certificate_response() ) ) ),
+				Client::TEST_BASE_URL
+			);
+
+			$pem = $client->public_key_certificate( $usage );
+
+			$this->assertStringContainsString( '-----BEGIN CERTIFICATE-----', $pem );
+			$this->assertStringContainsString( base64_encode( $expected ), $pem, $usage . ' icin yanlis sertifika' );
+		}
+	}
+
+	/**
+	 * Bilinmeyen bir kullanım sessizce yanlış sertifika döndürmez.
+	 *
+	 * @return void
+	 */
+	public function test_an_unknown_certificate_usage_is_refused(): void {
+		$client = new Client(
+			new RecordingTransport( array( new Response( 200, $this->certificate_response() ) ) ),
+			Client::TEST_BASE_URL
+		);
+
+		$this->expectException( \RuntimeException::class );
+
+		$client->public_key_certificate( 'BoyleBirKullanimYok' );
+	}
+
+	/**
+	 * KSeF'in canlı sertifika yanıtının biçimi.
+	 *
+	 * Alanlar ve kullanım etiketleri api-test ortamından alınan gerçek
+	 * yanıttan: iki sertifika, biri jeton biri simetrik anahtar için.
+	 *
+	 * @return string
+	 */
+	private function certificate_response(): string {
+		return (string) wp_json_encode(
 			array(
 				array(
-					'usage'       => array( 'KsefTokenEncryption' ),
-					'certificate' => base64_encode( 'yanlis' ),
+					'certificate'   => base64_encode( 'jeton' ),
+					'certificateId' => 'CERT-1',
+					'usage'         => array( Client::USAGE_TOKEN ),
 				),
 				array(
-					'usage'       => array( 'SymmetricKeyEncryption' ),
-					'certificate' => base64_encode( 'dogru' ),
+					'certificate'   => base64_encode( 'simetrik' ),
+					'certificateId' => 'CERT-2',
+					'usage'         => array( Client::USAGE_SYMMETRIC_KEY ),
 				),
 			)
 		);
-
-		$client = new Client( new RecordingTransport( array( new Response( 200, $body ) ) ), Client::TEST_BASE_URL );
-
-		$pem = $client->public_key_certificate();
-
-		$this->assertStringContainsString( '-----BEGIN CERTIFICATE-----', $pem );
-		$this->assertStringContainsString( base64_encode( 'dogru' ), $pem );
-		$this->assertStringNotContainsString( base64_encode( 'yanlis' ), $pem );
 	}
 
 	/**
