@@ -36,6 +36,14 @@ enum Profile: string {
 	case EN16931 = 'en16931';
 
 	/**
+	 * Polonya. KSeF FA(3), ulusal sema - CII ya da UBL degil.
+	 *
+	 * Dikkat: FA(3) dosyasi tek basina hukuken var olmaz; KSeF'e gonderilip
+	 * numara alana kadar fatura sayilmaz. Bkz. docs/adr/0006-polonya-ksef.md
+	 */
+	case KSEF = 'ksef';
+
+	/**
 	 * Satıcının ülkesine uygun profili döndürür.
 	 *
 	 * Belirleyici SATICININ ülkesidir, alıcının değil — mükellefiyet satıcıya
@@ -45,6 +53,17 @@ enum Profile: string {
 	 * @return self
 	 */
 	public static function for_country( string $country ): self {
+		/*
+		 * Polonya BILEREK burada yok. KSEF profili ve Fa3Builder hazir ama
+		 * uretim akisina baglanmadi: FA(3) dosyasi KSeF'e gonderilip numara
+		 * alana kadar hukuken var olmaz. Iletim (2. kademe) bitmeden PL'yi
+		 * buraya eklemek, Polonyali magazanin bugun aldigi EN 16931 CII
+		 * belgesini yerine gecerli bir sey koymadan elinden alir; uretici
+		 * profili desteklemedigi icin Generator null doner ve belge hic
+		 * uretilmez.
+		 *
+		 * Bkz. docs/adr/0006-polonya-ksef.md
+		 */
 		$profile = match ( strtoupper( trim( $country ) ) ) {
 			'FR'    => self::FACTUR_X,
 			'DE'    => self::XRECHNUNG,
@@ -77,6 +96,7 @@ enum Profile: string {
 			self::FACTUR_X  => 'Factur-X (EN 16931)',
 			self::XRECHNUNG => 'XRechnung 3.0',
 			self::EN16931   => 'EN 16931 (CII)',
+			self::KSEF      => 'KSeF FA(3)',
 		};
 	}
 

@@ -47,6 +47,15 @@
 		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
 	</rule>
 
+	<!--
+		FA(3) modelinin ozellik adlari Polonya'nin resmi XSD'sinden uretilir
+		(nrWierszaFa, p18A, pPMarzyN ...). Bizim degistirebilecegimiz adlar
+		degil, o yuzden snake_case denetimi yalnizca o dosyada kapatiliyor.
+	-->
+	<rule ref="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase">
+		<exclude-pattern>*/src/Invoice/Fa3Builder.php</exclude-pattern>
+	</rule>
+
 	<!-- Kancalar "konform/" ile ad alanina alinir; bilincli tercih. -->
 	<rule ref="WordPress.NamingConventions.ValidHookName">
 		<properties>
