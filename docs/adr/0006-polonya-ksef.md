@@ -1,15 +1,11 @@
 # 0006 — Polonya / KSeF desteği
 
 Tarih: 3 Eylül 2026
-Durum: **Ertelendi** — ADR 0005'e bağımlı
+Durum: **Kabul edildi** — kademeli olarak yapılıyor
 
 ## Bağlam
 
-Polonya, ürün için en cazip görünen pazardı: zorunluluk **zaten yürürlükte**
-ve WordPress.org'da 700 kurulumlu bir rakip var (Flexible Invoices KSeF
-eklentisi), yani talebin varlığı kanıtlanmış.
-
-Takvim:
+Zorunluluk yürürlükte ve talep kanıtlanmış:
 
 | Tarih | Kapsam |
 |---|---|
@@ -18,52 +14,66 @@ Takvim:
 | 2027 | Mikro işletmeler ve KDV'den muaf olanlar |
 | 1 Ocak 2027 | Cezaların başlaması (şu an geçiş dönemi) |
 
-Bugün Polonya'ya jenerik EN 16931 CII üretiyoruz. Doğru format **FA(3)** —
-CII ya da UBL değil, Polonya'nın kendi ulusal şeması. Yani yeni bir
-`DocumentBuilder` gerekiyor; `ZugferdBuilder`'a profil eklemekle olmaz.
+WordPress.org'da 700 kurulumlu bir KSeF eklentisi var — talebin var olduğu
+kanıtlanmış tek pazar.
 
-## Araştırmanın ortaya çıkardığı şey
+## Belirleyici olan şey
 
-**KSeF bir format değil, bir tescil sistemi.**
+**KSeF bir format değil, bir tescil sistemi.** Bir FA(3) dosyası KSeF'e
+gönderilip kabul edilene ve kendisine bir **KSeF numarası** atanana kadar
+hukuken var olmaz; gönderim tarihi resmî düzenleme tarihi sayılır.
 
-Bir FA(3) dosyası KSeF'e gönderilip sisteme kabul edilene ve kendisine bir
-**KSeF numarası** atanana kadar **hukuken var olmaz**. Gönderim tarihi resmî
-düzenleme tarihi sayılır.
+Bu, Fransa ve Almanya'dan temelden farklıdır. Factur-X dosyası tek başına
+anlamlıdır. FA(3) dosyası tek başına hiçbir şeydir.
 
-Bu, Fransa ve Almanya'dan temelden farklı. Bir Factur-X dosyası tek başına
-anlamlıdır: üretirsiniz, alıcıya gönderirsiniz, iş görür. Bir FA(3) dosyası
-tek başına **hiçbir şey değildir**.
+## Peppol ile karıştırılmamalı
 
-## Sonuç
+İlk değerlendirmede Polonya, [ADR 0005](0005-iletim-yapilacak-mi.md)'teki
+Peppol iletimiyle aynı kefeye konmuştu. **Bu eksik bir değerlendirmeydi.**
 
-Polonya desteği, ürettiğimiz belgeyi KSeF'e **iletme** yeteneği olmadan
-anlamlı değil. İletim ise [ADR 0005](0005-iletim-yapilacak-mi.md) ile bilinçli
-olarak ertelendi.
+- **Peppol** ticari bir erişim noktasıyla sözleşme gerektirir.
+- **KSeF doğrudan devletin API'sidir.** Aracı yok, sözleşme yok, ücret yok.
+  Üstelik `api-test.ksef.mf.gov.pl` adresinde açık bir test ortamı var;
+  oradaki faturaların hukuki sonucu yoktur ve bir süre sonra silinirler.
 
-Yarısını yapmak — FA(3) üretip göndermemek — **desteklememekten kötüdür**.
-Kullanıcı ekranda "Polonya destekleniyor" görür, belgesini alır, ve elindeki
-şeyin hukuken var olmadığını ancak sonra öğrenir. Uyumluluk ürününde
-yapılabilecek en kötü şey budur.
+Yani Polonya, ADR 0005'in beklediği "altyapı işletmeciliğine geçiş"
+kararından bağımsız yapılabilir. ADR 0005 Peppol için geçerliliğini korur.
 
-## Karar
+## Kütüphane seçimi
 
-**Ertelendi.** Polonya, ADR 0005'te iletim yönünde karar verilirse gündeme
-gelir; o karardan önce değil.
+**`intermedia/ksef-fa3` v1.0.2** kullanılacak (MIT, PHP ^8.1).
 
-Bu arada `Profile::for_country()` Polonya için CII döndürmeye devam ediyor.
-Bu, "Polonya destekleniyor" iddiası değil — hiçbir yerde öyle bir iddia yok;
-`readme.txt` yalnızca Fransa ve Almanya'yı sayıyor ve Polonya'yı "sırada"
-diyor. Bu ifade **düzeltilmeli**: "sırada" demek, iletim kararı verilmeden
-tutulamayacak bir söz.
+Gerekçe, ADR 0001'dekiyle aynı: yalın olanı seç.
 
-## İşin gerçek boyutu (karar verilirse)
+- Resmî FA(3) XSD şemalarından üretilmiş modeller, enum'lar, XML serileştirici
+  **ve XSD doğrulayıcı**; şemaları paketin içinde taşıyor.
+- Bağımlılıkları **yalnızca `ext-dom` ve `ext-libxml`**. Strauss'la öneklenecek
+  ek bir paket ağacı yok, çakışma yüzeyi yok.
 
-1. FA(3) şema eşlemesi — yeni builder, EN 16931 semantik modelinden Polonya
-   ulusal şemasına. Alan kümesi CII'den farklı; birebir eşleşmeyen alanlar var.
-2. KSeF API entegrasyonu — kimlik doğrulama (token/sertifika), gönderim,
-   durum sorgulama, KSeF numarasının alınması ve saklanması.
-3. Hata ve yeniden gönderim kuyruğu — reddedilen belgenin ne olacağı,
-   mükerrer gönderimin önlenmesi.
-4. KSeF numarasının arşive ve denetim kaydına işlenmesi.
+Reddedilenler:
 
-Yani asıl iş 1 değil, 2–4. Ve 2–4, ADR 0005'in konusudur.
+- `n1ebieski/ksef-php-client` — aktif ve popüler (100 bin indirme) ama
+  psr-http, valinor, phpseclib, qr-code dahil ağır bir bağımlılık ağacı
+  getiriyor. Bir WordPress eklentisine bu yük girmemeli.
+- `nozugroup/ksef-client-php` — KSeF 2.0'a özel ama v0.1.0 ve 52 indirme.
+
+**API istemcisi kendimiz yazılacak**, `wp_remote_*` üzerinden. KSeF 2.0 REST
+ve JSON; birkaç uç için Guzzle ve PSR yığını taşımak gereksiz. `HostedValidator`
+zaten bu deseni kuruyor.
+
+## Kademeler
+
+1. **FA(3) üretimi** — yeni `Profile` durumu, yeni `DocumentBuilder`,
+   `SemanticInvoice` → `FakturaType` eşlemesi, yerel XSD doğrulaması.
+   Kimlik bilgisi gerektirmez, çevrimdışı test edilebilir.
+2. **KSeF API istemcisi** — oturum açma, gönderim, durum sorgulama, KSeF
+   numarası ve UPO'nun alınması. `api-test` ortamına karşı.
+3. **Saklama ve arayüz** — KSeF numarasının arşive ve denetim kaydına
+   işlenmesi, token ayarı, sipariş ekranında durum.
+4. **Kuyruk ve yeniden gönderim** — reddedilen belge, mükerrer gönderimin
+   önlenmesi.
+
+**1. kademe tek başına kullanıcıya açılmaz.** FA(3) üretip göndermemek,
+desteklememekten kötüdür: kullanıcı "Polonya destekleniyor" görür, belgesini
+alır, elindekinin hukuken var olmadığını sonra öğrenir. Polonya `readme.txt`'de
+ancak 2. kademe bitince duyurulur.
