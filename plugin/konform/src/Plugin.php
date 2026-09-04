@@ -13,6 +13,7 @@ use Konform\Admin\OrderDocuments;
 use Konform\Admin\PreflightPage;
 use Konform\Delivery\EmailDelivery;
 use Konform\I18n\Locale;
+use Konform\Queue\KsefQueue;
 use Konform\Queue\Scheduler;
 use Konform\Storage\Database;
 use Konform\Storage\Retention;
@@ -94,6 +95,14 @@ final class Plugin {
 		add_action( 'init', array( Database::class, 'maybe_install' ), 5 );
 
 		Scheduler::register();
+
+		/*
+		 * KSeF kuyrugunun kancasi kayitli duruyor ama su an hicbir sey kuyruga
+		 * girmiyor: Polonya uretim akisina bagli degil. Kancanin burada olmasi,
+		 * baglandigi gun tek satirlik bir degisiklik birakiyor.
+		 */
+		KsefQueue::register();
+
 		EmailDelivery::register();
 		Retention::register();
 

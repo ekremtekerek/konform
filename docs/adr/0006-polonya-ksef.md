@@ -85,8 +85,42 @@ yapabiliyor. Eklenti PHP 8.2 istediği için bir çözüm gerekti; phpseclib
    kullanıcı jetonunu girer, hiçbir şey olmaz. Alan, 4. kademe bitip Polonya
    duyurulabilir hâle geldiğinde eklenecek. `Settings` sınıfı hazır ve
    sınanmış durumda.
-4. **Kuyruk ve yeniden gönderim** — reddedilen belge, mükerrer gönderimin
-   önlenmesi.
+4. **Kuyruk ve yeniden gönderim** — ✅ **yapıldı.** `Queue\KsefQueue`,
+   gecikmeli yeniden zamanlama, mükerrer gönderimin önlenmesi.
+
+## Mükerrer gönderim nasıl önleniyor
+
+Bir belge KSeF açısından üç durumdan birindedir ve her biri farklı davranış
+gerektirir:
+
+| Durum | Davranış |
+|---|---|
+| Tescilli (numarası var) | Hiçbir şey yapılmaz |
+| Gönderilmiş, numarasız | **Yalnızca sorgulanır** |
+| Hiç gönderilmemiş | Gönderilir |
+
+İkinci durum bu tasarımın kalbi. KSeF faturayı önce kabul eder (referans
+numarası verir), numarayı dakikalar sonra atar. Arada süreç koparsa —zaman
+aşımı, çökme, kuyruğun yeniden başlaması— ve "gönderildi mi" sorusunun cevabı
+saklanmıyorsa, yeniden deneme faturayı **tekrar gönderir**. KSeF'te aynı
+faturanın iki kaydı oluşur ve bunun düzeltilmesi zordur.
+
+Bu yüzden `ksef_session` ve `ksef_reference` sütunları var (şema sürümü 3) ve
+referans, numara **beklenmeden**, gönderimin hemen ardından kalıcılaştırılıyor.
+Mükerrer bir fatura, geç tescil edilmiş bir faturadan kötüdür.
+
+Koruma iki katmanlı: kuyruk aynı belge için ikinci iş eklemiyor, `Submission`
+ise kuyruk atlansa bile gönderilmiş belgeyi tekrar göndermiyor. Biri kuyruğu
+temiz tutuyor, öbürü faturayı koruyor.
+
+## Bekleme döngüyle değil, yeniden zamanlamayla
+
+Numara için `sleep()` ile beklenmiyor. Bir kuyruk işini dakikalarca meşgul
+etmek, sıradaki işlerin beklemesi demek. Sonuç hazır değilse iş iki dakika
+gecikmeyle yeniden zamanlanıyor; en fazla 20 kez, yani yaklaşık 40 dakika.
+
+Sınır dolduğunda vazgeçmek belgeyi kaybetmek değil: referans arşivde,
+gönderim olayı denetim kaydında duruyor. Sonradan sorgulanabilir.
 
 **1. kademe tek başına kullanıcıya açılmaz.** FA(3) üretip göndermemek,
 desteklememekten kötüdür: kullanıcı "Polonya destekleniyor" görür, belgesini

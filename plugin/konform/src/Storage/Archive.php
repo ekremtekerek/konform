@@ -168,6 +168,42 @@ final class Archive {
 	}
 
 	/**
+	 * Belgeye gönderim referansını işler.
+	 *
+	 * KSeF faturayi kabul eder etmez, numara beklenmeden cagrilir. Amac
+	 * "gonderildi ama sonucu bilinmiyor" durumunu kalici kilmak: surec burada
+	 * koparsa bile yeniden deneme, gonderim yerine sorgulama yapar.
+	 *
+	 * @param int    $document_id Belge kimliği.
+	 * @param string $session     Oturum referansı.
+	 * @param string $reference   Fatura referansı.
+	 * @return bool
+	 */
+	public static function record_ksef_submission( int $document_id, string $session, string $reference ): bool {
+		global $wpdb;
+
+		$reference = trim( $reference );
+
+		if ( '' === $reference ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$updated = $wpdb->update(
+			Database::documents_table(),
+			array(
+				'ksef_session'   => trim( $session ),
+				'ksef_reference' => $reference,
+			),
+			array( 'id' => $document_id ),
+			array( '%s', '%s' ),
+			array( '%d' )
+		);
+
+		return false !== $updated;
+	}
+
+	/**
 	 * Belgeye KSeF numarasını işler.
 	 *
 	 * KSeF numarasi KALICIDIR ve belgeye bir kez atanir. Var olanin uzerine

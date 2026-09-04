@@ -37,6 +37,8 @@ final class Document {
 	 * @param string $created_at     Oluşturulma zamanı (MySQL biçimi).
 	 * @param int    $created_by     Oluşturan kullanıcı; kuyrukta 0.
 	 * @param string $ksef_number    KSeF numarası; gönderilmemişse boş.
+	 * @param string $ksef_session   Gönderim oturumunun referansı.
+	 * @param string $ksef_reference Faturanın KSeF referans numarası.
 	 */
 	public function __construct(
 		public readonly int $id,
@@ -52,6 +54,8 @@ final class Document {
 		public readonly string $created_at,
 		public readonly int $created_by,
 		public readonly string $ksef_number = '',
+		public readonly string $ksef_session = '',
+		public readonly string $ksef_reference = '',
 	) {}
 
 	/**
@@ -65,6 +69,21 @@ final class Document {
 	 */
 	public function is_registered(): bool {
 		return '' !== $this->ksef_number;
+	}
+
+	/**
+	 * Belge KSeF'e gönderildi mi (numara henüz gelmemiş olabilir).
+	 *
+	 * Bu durum BIRINCI SINIF olmak zorunda. KSeF faturayi once kabul eder,
+	 * numarayi sonra atar. Arada surec koparsa "gonderildi mi" sorusunun
+	 * cevabi bilinmiyorsa, yeniden deneme faturayi TEKRAR gonderir ve KSeF'te
+	 * mukerrer kayit olusur. Referans saklandigi icin yeniden deneme gonderim
+	 * yerine SORGULAMA yapabiliyor.
+	 *
+	 * @return bool
+	 */
+	public function is_submitted(): bool {
+		return '' !== $this->ksef_reference;
 	}
 
 	/**
@@ -87,7 +106,9 @@ final class Document {
 			(int) ( $row['version'] ?? 1 ),
 			(string) ( $row['created_at'] ?? '' ),
 			(int) ( $row['created_by'] ?? 0 ),
-			(string) ( $row['ksef_number'] ?? '' )
+			(string) ( $row['ksef_number'] ?? '' ),
+			(string) ( $row['ksef_session'] ?? '' ),
+			(string) ( $row['ksef_reference'] ?? '' )
 		);
 	}
 
