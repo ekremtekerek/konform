@@ -181,6 +181,65 @@ final class ClientTest extends TestCase {
 	}
 
 	/**
+	 * Durum sorgusu "online" yolundan yapılmaz.
+	 *
+	 * Oturum ACMAK icin /sessions/online kullanilir, ama acilmis oturumu ve
+	 * icindeki faturalari SORGULAMAK /sessions/{ref} altindan yapilir. Ilk
+	 * yazimda ikisi de "online" idi ve api-test ortami 404 dondurdu; belgeler
+	 * bu ayrimi acikca soylemiyordu.
+	 *
+	 * @return void
+	 */
+	public function test_status_is_queried_without_the_online_segment(): void {
+		$transport = null;
+
+		$client = $this->authenticated_client(
+			array( new Response( 200, (string) wp_json_encode( array( 'ksefNumber' => 'KSEF-1' ) ) ) ),
+			$transport
+		);
+
+		$status = $client->invoice_status( 'SESSION-1', 'INVOICE-1' );
+
+		$this->assertSame( 'KSEF-1', $status['ksefNumber'] );
+
+		$url = (string) $transport->requests[ self::AUTH_CALLS ]['url'];
+
+		$this->assertStringEndsWith( '/sessions/SESSION-1/invoices/INVOICE-1', $url );
+		$this->assertStringNotContainsString( '/sessions/online/', $url );
+	}
+
+	/**
+	 * Oturum durumu da aynı yoldan sorgulanır.
+	 *
+	 * @return void
+	 */
+	public function test_the_session_status_path(): void {
+		$transport = null;
+
+		$client = $this->authenticated_client(
+			array(
+				new Response(
+					200,
+					(string) wp_json_encode(
+						array(
+							'status'       => array( 'code' => 100 ),
+							'invoiceCount' => 1,
+						)
+					)
+				),
+			),
+			$transport
+		);
+
+		$this->assertSame( 1, $client->session_status( 'SESSION-1' )['invoiceCount'] );
+
+		$this->assertStringEndsWith(
+			'/sessions/SESSION-1',
+			(string) $transport->requests[ self::AUTH_CALLS ]['url']
+		);
+	}
+
+	/**
 	 * Yetkilendirilmemiş istemci gönderim yapmaz.
 	 *
 	 * @return void

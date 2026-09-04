@@ -72,10 +72,9 @@ yapabiliyor. Eklenti PHP 8.2 istediği için bir çözüm gerekti; phpseclib
 1. **FA(3) üretimi** — ✅ **yapıldı.** `Profile::KSEF`, `Fa3Builder`,
    `SemanticInvoice` → `FakturaType` eşlemesi, yerel XSD doğrulaması.
    Kimlik bilgisi gerektirmez, çevrimdışı test edilir.
-2. **KSeF API istemcisi** — 🔶 **yazıldı, canlı sınavı bekliyor.** Yetkilendirme
-   (challenge → ksef-token → redeem), oturum açma, şifreli gönderim, durum
-   sorgulama. `api-test` ortamına karşı çalıştırmak bir **KSeF test jetonu**
-   gerektiriyor ve o jeton mağaza sahibinin hesabından alınır.
+2. **KSeF API istemcisi** — ✅ **yapıldı ve canlı doğrulandı.** Yetkilendirme,
+   oturum açma, şifreli gönderim, durum sorgulama. `api-test` ortamına gerçek
+   bir FA(3) faturası gönderildi ve KSeF numarası alındı.
 3. **Saklama ve arayüz** — KSeF numarasının arşive ve denetim kaydına
    işlenmesi, token ayarı, sipariş ekranında durum.
 4. **Kuyruk ve yeniden gönderim** — reddedilen belge, mükerrer gönderimin
@@ -113,6 +112,55 @@ Kütüphaneyi okumak iki varsayımı çürüttü; ikisi de kod yazmadan önce ya
 Sonuç: eşleme **orana değil vergi kategorisine** dayanmak zorunda. Yalnızca
 sayısal orana bakan bir eşleme, AB içi teslimi yurt içi sıfır alanına yazardı;
 şema denetiminden geçer ama beyanı bozardı. `Fa3BuilderTest` bunu koruyor.
+
+## Canlı doğrulama
+
+`api-test.ksef.mf.gov.pl` ortamına gerçek bir gönderim yapıldı ve **KSeF
+numarası alındı**:
+
+```
+5265877635-20260904-3A0E71000000-0A
+```
+
+Bu, zincirin tamamının gerçek sistem tarafından kabul edildiği anlamına gelir:
+`Fa3Builder`'ın ürettiği belge, `Encryption`'ın AES şifrelemesi ve kendi
+yazdığımız OAEP sarmalaması, `Client`'ın oturum akışı.
+
+### Kapı nasıl açıldı
+
+Gönderim için erişim jetonu gerekiyor; jeton üretmek bir kez **XAdES imzalı**
+doğrulama istiyor. Test ortamı bunun için **kendi imzalı** sertifikaya izin
+veriyor. `bin/ksef-live-test.php` bunu yapıyor: sertifikayı üretiyor,
+`AuthTokenRequest` belgesini XAdES ile imzalıyor, erişim jetonunu alıyor.
+
+XAdES imzası **bağımlılıksız** yazıldı; PHP'nin yerel `DOMNode::C14N()`
+desteği yeterli oldu. Bakanlık kabul etti (*"Uwierzytelnianie zakończone
+sukcesem"*).
+
+Sertifika konusunda NIP, `2.5.4.97` (organizationIdentifier) alanına
+`VATPL-<NIP>` olarak yazılıyor. Bu biçim belgelerde yok; Bakanlık'ın kendi
+.NET istemcisinin birim testlerinden alındı.
+
+**Bu betikler yalnızca geliştirme araçlarıdır.** `bin/` dizini paketin dışında;
+gerçek kullanıcılar XAdES kullanmaz, KSeF jetonunu bir kez kendileri üretip
+eklentiye yapıştırır.
+
+### Canlı denemenin yakaladığı iki hata
+
+Belgelerden yazarken ikisi de görülmemişti:
+
+1. **Yanlış sertifika.** KSeF iki sertifika döndürüyor: `KsefTokenEncryption`
+   (jetonu şifrelemek) ve `SymmetricKeyEncryption` (AES anahtarını
+   sarmalamak). `public_key_certificate()` her zaman simetrik olanı
+   veriyordu; kimlik doğrulama yanlış anahtarla şifreleme yapacaktı.
+
+2. **Yanlış durum yolu.** Oturum **açmak** `/sessions/online`, ama açılmış
+   oturumu ve faturalarını **sorgulamak** `/sessions/{ref}` altından
+   yapılıyor. İkisinde de "online" kullanmak 404 veriyordu.
+
+Bir de kayda değer bir ayrıntı: meydan okumanın `timestamp` alanı tam sayı
+milisaniye değil, **ISO-8601 dizgesi** olarak geliyor. İstemcinin ikisini de
+kabul etmesi işe yaradı.
 
 ## Bilinen eksik: muafiyetin hukuki dayanağı
 

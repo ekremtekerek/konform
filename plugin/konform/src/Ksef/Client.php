@@ -210,6 +210,20 @@ final class Client {
 	}
 
 	/**
+	 * Daha önce alınmış bir erişim jetonunu kullanır.
+	 *
+	 * Erisim jetonu sinirli sureli ama tek kullanimlik degil; saklanip yeniden
+	 * kullanilabilir. Her gonderimde bastan kimlik dogrulamak hem yavas hem
+	 * gereksiz.
+	 *
+	 * @param string $token Erişim jetonu.
+	 * @return void
+	 */
+	public function use_access_token( string $token ): void {
+		$this->access_token = $token;
+	}
+
+	/**
 	 * Etkileşimli bir oturum açar.
 	 *
 	 * @param string $wrapped_key Sarmalanmış AES anahtarı (ham).
@@ -286,15 +300,32 @@ final class Client {
 	 * @throws \RuntimeException Sorgulama başarısızsa.
 	 */
 	public function invoice_status( string $session, string $invoice ): array {
+		/*
+		 * DIKKAT: sorgulama yolu "/sessions/online/..." DEGIL. Oturum acmak
+		 * icin /sessions/online kullanilir ama acilmis oturumu ve icindeki
+		 * faturalari sorgulamak /sessions/{ref} altindan yapilir. Ilk yazimda
+		 * "online" buraya da konmustu ve canli deneme 404 dondurdu.
+		 */
 		return $this->send(
 			'GET',
 			sprintf(
-				'/sessions/online/%s/invoices/%s',
+				'/sessions/%s/invoices/%s',
 				rawurlencode( $session ),
 				rawurlencode( $invoice )
 			),
 			null
 		)->json();
+	}
+
+	/**
+	 * Oturumun durumunu sorgular.
+	 *
+	 * @param string $session Oturum referans numarası.
+	 * @return array<string,mixed>
+	 * @throws \RuntimeException Sorgulama başarısızsa.
+	 */
+	public function session_status( string $session ): array {
+		return $this->send( 'GET', sprintf( '/sessions/%s', rawurlencode( $session ) ), null )->json();
 	}
 
 	/**
