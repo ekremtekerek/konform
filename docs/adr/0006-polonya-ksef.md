@@ -302,11 +302,31 @@ ayrılmıştır:
 | `P_19B` | 2006/112/AT yönergesinin ilgili maddesi |
 | `P_19C` | Diğer hukuki dayanak |
 
-Elimizdeki BT-120 metni serbest biçimlidir ve hangisine karşılık geldiğini
-bilemeyiz; bu yüzden şimdilik `P_19C`'ye yazılıyor. Dayanak hiç yoksa üretici
-belge üretmek yerine **duruyor** — muaf bir faturaya "muafiyet yok" demek
-yanlış beyandır.
+Elimizdeki BT-120 metni serbest biçimlidir. İlk sürümde her şey `P_19C`'ye
+yazılıyordu; bu, en yaygın durumu — yurt içi muafiyet, kanun maddesiyle —
+yanlış alana koyuyordu.
 
-**Polonya kullanıcıya açılmadan önce bu eşleme Polonya KDV mevzuatına göre
-gözden geçirilmeli.** Muhtemelen yurt içi muafiyetler `P_19A`'ya, AB içi
-işlemler `P_19B`'ye gitmeli.
+Şimdi alan **metinden okunuyor**: yönerge anılmışsa (`2006/112`, `dyrektyw`,
+`directive`) `P_19B`; Polonya mevzuatına atıf varsa (`ustaw` + `art`)
+`P_19A`; hiçbiri anlaşılmıyorsa `P_19C`.
+
+Üçü de canlı KSeF'e gönderildi ve **üçü de kabul edildi**.
+
+Dayanak hiç yoksa üretici belge üretmek yerine **duruyor** — muaf bir faturaya
+"muafiyet yok" demek yanlış beyandır.
+
+**Bu bir sezgidir, hukuki görüş değil.** Tanınmayan metin "diğer" alanına
+düşüyor: yanlış bir kanun alanına yazmaktansa açıkça belirsiz kalmak yeğdir.
+Muaf fatura kesen mağazanın dayanağını muhasebecisine doğrulatması gerektiği
+`readme.txt`'de kullanıcıya söyleniyor.
+
+## Kazara öğrenilen: KSeF mükerrer fatura numarası kabul etmiyor
+
+Kategori matrisi çalıştırılırken bir senaryo **"Duplikat faktury"** aldı.
+Sebep test betiğindeydi: üç yurt içi senaryo da `S` kategorisindeydi ve fatura
+numarası `saniye + kategori`den üretildiği için çakışıyorlardı.
+
+Bulgu değerli: **KSeF aynı NIP için aynı fatura numarasını ikinci kez kabul
+etmiyor.** Bu, 4. kademedeki mükerrer önleme tasarımının gerekçesini deneysel
+olarak doğruluyor — "gönderildi ama numara yok" durumu birinci sınıf olmasaydı,
+yeniden deneme aynı faturayı ikinci kez gönderir ve bu reddi alırdı.

@@ -209,6 +209,56 @@ final class Fa3BuilderTest extends TestCase {
 	}
 
 	/**
+	 * Muafiyetin dayanağı türüne göre doğru alana yazılır.
+	 *
+	 * FA(3) dayanagi uce ayirir ve bunlar birbirinin yerine gecmez: ulusal
+	 * kanun (P_19A), AB yonergesi (P_19B), diger (P_19C). Hepsini P_19C'ye
+	 * yazmak onceki davranisti ve en yaygin durumu — yurt ici muafiyet,
+	 * kanun maddesiyle — yanlis alana koyuyordu.
+	 *
+	 * @return void
+	 */
+	public function test_the_exemption_basis_goes_to_the_matching_field(): void {
+		$builder = new Fa3Builder();
+
+		// Polonya kanununa atif.
+		$national = $builder->build_xml(
+			$this->invoice( 'E', 0.0, 'Zwolnienie na podstawie art. 43 ust. 1 ustawy o VAT' ),
+			Profile::KSEF
+		);
+
+		$this->assertStringContainsString( '<P_19A>', $national );
+		$this->assertStringNotContainsString( '<P_19C>', $national );
+
+		// AB yonergesine atif.
+		$directive = $builder->build_xml(
+			$this->invoice( 'E', 0.0, 'Exempt under Article 132 of Directive 2006/112/EC' ),
+			Profile::KSEF
+		);
+
+		$this->assertStringContainsString( '<P_19B>', $directive );
+		$this->assertStringNotContainsString( '<P_19A>', $directive );
+	}
+
+	/**
+	 * Tanınmayan bir dayanak "diğer" alanına düşer.
+	 *
+	 * Yanlis bir kanun alanina yazmaktansa acikca belirsiz kalmak yeglenir.
+	 *
+	 * @return void
+	 */
+	public function test_an_unrecognised_basis_falls_back_to_other(): void {
+		$xml = ( new Fa3Builder() )->build_xml(
+			$this->invoice( 'E', 0.0, 'Exempt from VAT.' ),
+			Profile::KSEF
+		);
+
+		$this->assertStringContainsString( '<P_19C>', $xml );
+		$this->assertStringNotContainsString( '<P_19A>', $xml );
+		$this->assertStringNotContainsString( '<P_19B>', $xml );
+	}
+
+	/**
 	 * Desteklenmeyen bir KDV oranı sessizce yutulmaz.
 	 *
 	 * FA(3) serbest oran kabul etmez. Bilinmeyen bir orani atlayip belgeyi

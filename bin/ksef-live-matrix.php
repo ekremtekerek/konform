@@ -93,13 +93,22 @@ final class MatrixTransport implements Transport {
  * @param string $reason   Muafiyet gerekçesi.
  * @return SemanticInvoice
  */
-function scenario_invoice( string $nip, string $category, float $rate, string $country, string $reason = '' ): SemanticInvoice {
+function scenario_invoice( string $nip, string $category, float $rate, string $country, string $reason = '', int $index = 0 ): SemanticInvoice {
 	$tax = round( 100.0 * $rate / 100, 2 );
 
 	$buyer_vat = 'PL' === $country ? 'PL9876543210' : $country . '123456789';
 
 	return new SemanticInvoice(
-		sprintf( 'KONFORM/%s/%s', gmdate( 'YmdHis' ), $category ),
+		/*
+		 * Numara SENARYO SIRASINI da tasir. Onceden yalnizca saniye ve kategori
+		 * vardi; uc yurt ici senaryo da 'S' oldugu icin ayni numarayi uretiyor
+		 * ve KSeF ikincisini "Duplikat faktury" diye reddediyordu.
+		 *
+		 * Kazara ogrenilen sey degerli: KSeF ayni NIP icin MUKERRER FATURA
+		 * NUMARASI kabul etmiyor. Bu, kuyrugun ayni belgeyi iki kez
+		 * gondermemesinin neden onemli oldugunun canli kaniti.
+		 */
+		sprintf( 'KONFORM/%s/%s/%d', gmdate( 'YmdHis' ), $category, $index ),
 		new DateTimeImmutable( 'today' ),
 		'380',
 		'PLN',
@@ -136,7 +145,9 @@ $scenarios = array(
 	array( 'G', 0.0, 'US', '', 'ihracat (P_13_6_3)' ),
 	array( 'AE', 0.0, 'DE', '', 'tersine yuk (P_13_10)' ),
 	array( 'O', 0.0, 'US', '', 'yurt disi hizmet (P_13_8)' ),
-	array( 'E', 0.0, 'PL', 'Zwolnienie na podstawie art. 43 ust. 1 ustawy o VAT', 'muafiyet (P_13_7 + P_19C)' ),
+	array( 'E', 0.0, 'PL', 'Zwolnienie na podstawie art. 43 ust. 1 ustawy o VAT', 'muafiyet / ulusal kanun (P_19A)' ),
+	array( 'E', 0.0, 'PL', 'Exempt under Article 132 of Directive 2006/112/EC', 'muafiyet / AB yonergesi (P_19B)' ),
+	array( 'E', 0.0, 'PL', 'Exempt from VAT.', 'muafiyet / belirsiz (P_19C)' ),
 );
 
 $builder = new Fa3Builder();
@@ -150,7 +161,7 @@ foreach ( $scenarios as $scenario ) {
 	list( $category, $rate, $country, $reason, $label ) = $scenario;
 
 	try {
-		$invoice = scenario_invoice( $nip, $category, $rate, $country, $reason );
+		$invoice = scenario_invoice( $nip, $category, $rate, $country, $reason, count( $documents ) + 1 );
 		$xml     = $builder->build_xml( $invoice, Profile::KSEF );
 
 		$documents[] = array(

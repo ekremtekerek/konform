@@ -462,6 +462,65 @@ final class Fa3Builder implements DocumentBuilder {
 	 * @return ZwolnienieType
 	 * @throws \RuntimeException Muaf faturada gerekçe yoksa.
 	 */
+	/**
+	 * Muafiyet dayanağının hangi alana yazılacağını seçer.
+	 *
+	 * FA(3) dayanağı üçe ayırır ve bunlar birbirinin yerine geçmez:
+	 *
+	 *   P_19A  Polonya KDV Kanunu ya da ona dayanan bir düzenleme
+	 *   P_19B  2006/112/AT yönergesinin maddesi
+	 *   P_19C  Diğer hukuki dayanak
+	 *
+	 * Elimizdeki BT-120 metni serbest bicimlidir, o yuzden hangisi oldugu
+	 * metinden okunuyor: yonerge anilmissa P_19B, Polonya mevzuatina atif
+	 * varsa P_19A, hicbiri anlasilmiyorsa P_19C.
+	 *
+	 * Her seyi P_19C'ye yazmak ONCEKI davranisti ve en yaygin durumu —
+	 * yurt ici muafiyet, kanun maddesiyle — yanlis alana koyuyordu.
+	 *
+	 * Bu bir SEZGIDIR, kesinlik degil. Metin tanidik bir kalibi tutmuyorsa
+	 * "diger" alanina dusuyor; yanlis bir kanun alanina yazmaktansa acikca
+	 * belirsiz kalmak yeglenir. Muaf fatura kesen magazanin dayanagi
+	 * muhasebecisine dogrulatmasi gerektigi readme.txt'de yaziyor.
+	 *
+	 * @param string $reason Muafiyet gerekçesi.
+	 * @return string Alan adı.
+	 */
+	private function exemption_field( string $reason ): string {
+		$text = mb_strtolower( $reason );
+
+		// AB yonergesine atif: "2006/112" ya da "dyrektyw"/"directive".
+		if (
+			str_contains( $text, '2006/112' )
+			|| str_contains( $text, 'dyrektyw' )
+			|| str_contains( $text, 'directive' )
+		) {
+			return 'p19B';
+		}
+
+		/*
+		 * Polonya mevzuatina atif. "ustaw" (kanun) ve "art." birlikte
+		 * arandiginda, "art. 43 ust. 1 ustawy o VAT" gibi olagan bicimler
+		 * yakalaniyor.
+		 */
+		if ( str_contains( $text, 'ustaw' ) && str_contains( $text, 'art' ) ) {
+			return 'p19A';
+		}
+
+		return 'p19C';
+	}
+
+	/**
+	 * Muafiyet bloğu.
+	 *
+	 * FA(3) bu blogu zorunlu tutar ve iki secenek sunar: ya muafiyet yoktur
+	 * (P_19N), ya da vardir ve HUKUKI DAYANAGI yazilir. Muaf bir faturaya
+	 * "muafiyet yok" demek yanlis beyandir, o yuzden kategoriye bakiliyor.
+	 *
+	 * @param SemanticInvoice $invoice Anlamsal fatura.
+	 * @return ZwolnienieType
+	 * @throws \RuntimeException Muaf faturada gerekçe yoksa.
+	 */
 	private function exemption( SemanticInvoice $invoice ): ZwolnienieType {
 		$block = new ZwolnienieType();
 
@@ -491,8 +550,9 @@ final class Fa3Builder implements DocumentBuilder {
 			);
 		}
 
-		$block->p19  = TWybor1::VAL_1;
-		$block->p19C = $reason;
+		$block->p19 = TWybor1::VAL_1;
+
+		$block->{$this->exemption_field( $reason )} = $reason;
 
 		return $block;
 	}

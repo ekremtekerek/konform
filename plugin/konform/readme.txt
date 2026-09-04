@@ -5,7 +5,7 @@ Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.2
 Requires Plugins: woocommerce
-Stable tag: 0.2.0
+Stable tag: 0.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -195,11 +195,12 @@ You need a KSeF token from your KSeF account. Start in the test environment —
 invoices sent there have no legal effect — and switch to production when you
 are satisfied.
 
-One limitation to know about: for VAT-exempt sales, KSeF requires the legal
-basis for the exemption, and Konform writes whatever exemption reason your
-order carries into the "other legal basis" field. If you issue exempt
-invoices, have your accountant check that this is the right field for your
-exemption before you rely on it.
+One thing to check if you issue VAT-exempt invoices: KSeF requires the legal
+basis for the exemption and keeps three separate fields for it — a Polish act,
+an EU directive, or another basis. Konform reads your exemption reason and
+picks the matching field; if the text names no recognisable provision, it uses
+"other". That is a best effort, not a legal opinion, so have your accountant
+confirm the basis you record is the right one.
 
 = Is the free version actually usable? =
 
@@ -224,6 +225,11 @@ site. See **External services** above.
 
 == Changelog ==
 
+= 0.2.1 =
+* Poland: the legal basis for a VAT exemption now goes to the field KSeF
+  expects — a Polish act, an EU directive, or "other" — instead of always
+  "other".
+
 = 0.2.0 =
 * Poland: KSeF FA(3) generation and submission. Invoices are sent to the
   national platform, the KSeF number is recorded against the order and shown
@@ -244,6 +250,10 @@ site. See **External services** above.
 * Optional validation against the official EN 16931 Schematron rule set.
 
 == Upgrade Notice ==
+
+= 0.2.1 =
+Polish stores that issue VAT-exempt invoices should reissue any exempt invoice
+sent with 0.2.0; the exemption basis was recorded in the wrong field.
 
 = 0.2.0 =
 Adds Poland (KSeF). Polish stores must enter a KSeF token; other stores are
