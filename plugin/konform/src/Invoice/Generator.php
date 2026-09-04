@@ -17,6 +17,7 @@ use Konform\Storage\Archive;
 use Konform\Storage\AuditLog;
 use Konform\Storage\Document;
 use Konform\Validation\HostedValidator;
+use Konform\Validation\ValidationResult;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -82,7 +83,7 @@ final class Generator {
 
 		$profile = Profile::for_country( $invoice->seller->country );
 		$locale  = Locale::document( $order );
-		$builder = self::builder();
+		$builder = self::builder( $profile );
 
 		if ( ! $builder->supports( $profile ) ) {
 			AuditLog::record(
@@ -113,8 +114,16 @@ final class Generator {
 		/*
 		 * Resmi kural setine gore dogrulama. PDF'e gomulmeden ONCE yapilir;
 		 * dogrulanan sey gonderilecek olanin ta kendisi olmali.
+		 *
+		 * FA(3) BU DOGRULAMADAN GECIRILMEZ. Polonya'nin semasi EN 16931 degil;
+		 * ulusal bir sema. Onu EN 16931 kural setine gondermek anlamsiz
+		 * hatalar uretir ve uretimi bloke ederdi. FA(3)'un dogrulanmasi iki
+		 * yerde yapiliyor: uretilirken resmi XSD'ye karsi (Fa3Builder) ve
+		 * gonderilirken KSeF'in kendisi tarafindan.
 		 */
-		$validation = ( new HostedValidator() )->validate( $xml );
+		$validation = Profile::KSEF === $profile
+			? ValidationResult::skipped()
+			: ( new HostedValidator() )->validate( $xml );
 
 		if ( $validation->blocks() ) {
 			AuditLog::record( AuditLog::EVENT_INVALID, $order_id, 0, $validation->summary() );
@@ -208,20 +217,27 @@ final class Generator {
 	}
 
 	/**
-	 * Kullanılacak üreticiyi döndürür.
+	 * Profile uygun üreticiyi döndürür.
 	 *
+	 * Polonya'nin FA(3) semasi CII degildir ve ZugferdBuilder onu uretemez;
+	 * bu yuzden uretici artik profile gore seciliyor.
+	 *
+	 * @param Profile $profile Belge profili.
 	 * @return DocumentBuilder
 	 */
-	private static function builder(): DocumentBuilder {
+	private static function builder( Profile $profile ): DocumentBuilder {
+		$default = Profile::KSEF === $profile ? new Fa3Builder() : new ZugferdBuilder();
+
 		/**
 		 * Belge üreticisini değiştirir.
 		 *
 		 * ADR 0001: kütüphane değişirse yalnızca bu adaptör değişir.
 		 *
-		 * @param DocumentBuilder $builder Üretici.
+		 * @param DocumentBuilder $default Üretici.
+		 * @param Profile         $profile Belge profili.
 		 */
-		$builder = \apply_filters( 'konform/document_builder', new ZugferdBuilder() );
+		$builder = \apply_filters( 'konform/document_builder', $default, $profile );
 
-		return $builder instanceof DocumentBuilder ? $builder : new ZugferdBuilder();
+		return $builder instanceof DocumentBuilder ? $builder : $default;
 	}
 }

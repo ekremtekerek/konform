@@ -36,23 +36,36 @@ final class Fa3BuilderTest extends TestCase {
 
 
 	/**
-	 * Polonya, iletim hazır olana dek üretilebilir bir profil almaya devam eder.
+	 * Polonya KSeF profilini alır ve o profil üretilebilirdir.
 	 *
-	 * KSEF profili ve Fa3Builder hazir ama uretim akisina bagli DEGIL. PL'yi
-	 * KSEF'e yonlendirmek, hicbir uretici o profili desteklemedigi icin
-	 * Generator'un null donmesine yol acar: magaza bugun aldigi EN 16931 CII
-	 * belgesini, yerine gecerli bir sey konmadan kaybeder.
+	 * Degismeyen kural sudur: bir ulkenin aldigi profili URETEBILEN bir
+	 * uretici olmali. Aksi halde Generator null doner ve magaza belgesini
+	 * sessizce kaybeder.
 	 *
-	 * Bu test o gerilemeyi tutuyor; profilin yalnizca ne oldugunu degil,
-	 * gercekten uretilebilir oldugunu da dogruluyor.
+	 * Bu test once PL'nin EN 16931 aldigini tutuyordu, cunku Polonya
+	 * kullaniciya kapaliydi ve KSEF'i destekleyen uretici akisa bagli
+	 * degildi. Iletim calisip Fa3Builder baglandiktan sonra hedef degisti;
+	 * korudugu kural ayni kaldi.
 	 *
 	 * @return void
 	 */
-	public function test_poland_still_receives_a_buildable_profile(): void {
+	public function test_poland_receives_a_buildable_profile(): void {
 		$profile = Profile::for_country( 'PL' );
 
-		$this->assertSame( Profile::EN16931, $profile );
-		$this->assertTrue( ( new ZugferdBuilder() )->supports( $profile ) );
+		$this->assertSame( Profile::KSEF, $profile );
+		$this->assertTrue( ( new Fa3Builder() )->supports( $profile ) );
+		$this->assertFalse( ( new ZugferdBuilder() )->supports( $profile ) );
+	}
+
+	/**
+	 * Diğer ülkelerin profilleri Polonya'dan etkilenmez.
+	 *
+	 * @return void
+	 */
+	public function test_other_countries_are_unaffected(): void {
+		$this->assertSame( Profile::FACTUR_X, Profile::for_country( 'FR' ) );
+		$this->assertSame( Profile::XRECHNUNG, Profile::for_country( 'DE' ) );
+		$this->assertSame( Profile::EN16931, Profile::for_country( 'ES' ) );
 	}
 
 	/**

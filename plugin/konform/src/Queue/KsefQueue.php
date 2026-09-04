@@ -9,6 +9,8 @@ declare( strict_types = 1 );
 
 namespace Konform\Queue;
 
+use Konform\Invoice\Profile;
+use Konform\Ksef\RejectedByKsef;
 use Konform\Ksef\Submission;
 use Konform\Storage\Archive;
 use Konform\Storage\AuditLog;
@@ -72,6 +74,27 @@ final class KsefQueue {
 	 */
 	public static function register(): void {
 		\add_action( self::HOOK, array( self::class, 'run' ), 10, 2 );
+
+		/*
+		 * Uretilen her FA(3) belgesi gonderilmek uzere kuyruga alinir. Diger
+		 * profiller dokunulmaz: Factur-X ve XRechnung iletilmez, dosya olarak
+		 * teslim edilir.
+		 */
+		\add_action( 'konform/document_generated', array( self::class, 'on_document_generated' ), 10, 1 );
+	}
+
+	/**
+	 * Belge üretildiğinde çalışır.
+	 *
+	 * @param Document $document Üretilen belge.
+	 * @return void
+	 */
+	public static function on_document_generated( Document $document ): void {
+		if ( Profile::KSEF->value !== $document->profile ) {
+			return;
+		}
+
+		self::enqueue( $document->id );
 	}
 
 	/**
@@ -156,6 +179,16 @@ final class KsefQueue {
 
 		try {
 			$number = Submission::create()->submit( $document, self::contents( $document ), $nip );
+		} catch ( RejectedByKsef $rejection ) {
+			/*
+			 * Ret KALICIDIR; ayni belgeyi tekrar sormak ayni cevabi verir.
+			 * Submission zaten denetim kaydina yazdi. Burada duruluyor ki kirk
+			 * dakika boyunca yirmi ozdes "reddedildi" satiri olusmasin;
+			 * gurultu, gercek sorunu gorunmez kilar.
+			 */
+			unset( $rejection );
+
+			return;
 		} catch ( \RuntimeException $error ) {
 			/*
 			 * Hata gonderim sirasinda da olabilir, sorgulama sirasinda da.

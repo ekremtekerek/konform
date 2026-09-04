@@ -54,19 +54,17 @@ enum Profile: string {
 	 */
 	public static function for_country( string $country ): self {
 		/*
-		 * Polonya BILEREK burada yok. KSEF profili ve Fa3Builder hazir ama
-		 * uretim akisina baglanmadi: FA(3) dosyasi KSeF'e gonderilip numara
-		 * alana kadar hukuken var olmaz. Iletim (2. kademe) bitmeden PL'yi
-		 * buraya eklemek, Polonyali magazanin bugun aldigi EN 16931 CII
-		 * belgesini yerine gecerli bir sey koymadan elinden alir; uretici
-		 * profili desteklemedigi icin Generator null doner ve belge hic
-		 * uretilmez.
+		 * Polonya ancak ILETIM CALISTIKTAN SONRA buraya eklendi. FA(3) dosyasi
+		 * KSeF'e gonderilip numara alana kadar hukuken var olmaz; gonderim
+		 * yokken PL'yi buraya koymak, magazanin aldigi belgeyi yerine gecerli
+		 * bir sey konmadan elinden almak olurdu.
 		 *
 		 * Bkz. docs/adr/0006-polonya-ksef.md
 		 */
 		$profile = match ( strtoupper( trim( $country ) ) ) {
 			'FR'    => self::FACTUR_X,
 			'DE'    => self::XRECHNUNG,
+			'PL'    => self::KSEF,
 			default => self::EN16931,
 		};
 

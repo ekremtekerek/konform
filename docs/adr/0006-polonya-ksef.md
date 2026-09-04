@@ -122,7 +122,31 @@ gecikmeyle yeniden zamanlanıyor; en fazla 20 kez, yani yaklaşık 40 dakika.
 Sınır dolduğunda vazgeçmek belgeyi kaybetmek değil: referans arşivde,
 gönderim olayı denetim kaydında duruyor. Sonradan sorgulanabilir.
 
-**1. kademe tek başına kullanıcıya açılmaz.** FA(3) üretip göndermemek,
+## Polonya açıldı
+
+Dört kademe bitince Polonya kullanıcıya açıldı (0.2.0):
+
+- `Profile::for_country()` içinde `PL` → `Profile::KSEF`
+- `Generator` üreticiyi **profile göre** seçiyor; FA(3) CII olmadığı için
+  `ZugferdBuilder` onu üretemez
+- Üretilen her FA(3), `konform/document_generated` üzerinden `KsefQueue`'ya
+  giriyor
+- Ayar ekranında jeton ve ortam; yalnızca satıcı Polonya'daysa görünüyor
+- `readme.txt`'de KSeF **dış servis olarak bildirildi** — WordPress.org bunu
+  şart koşuyor ve kullanıcının faturasının nereye gittiğini bilmesi gerekiyor
+
+### Açarken kapatılan bir tuzak
+
+`HostedValidator` belgeyi **EN 16931** kural setine karşı doğrular. FA(3) ise
+EN 16931 değil, ulusal bir şemadır. Pro planda doğrulama yapılandırılmış bir
+Polonyalı mağazada her fatura anlamsız hatalarla **bloke olacaktı**.
+
+FA(3) artık o doğrulamayı atlıyor. Zaten iki yerde doğrulanıyor: üretilirken
+resmî XSD'ye karşı (`Fa3Builder`), gönderilirken KSeF'in kendisi tarafından.
+
+## Kademelerin tarihçesi
+
+**1. kademe tek başına kullanıcıya açılmadı.** FA(3) üretip göndermemek,
 desteklememekten kötüdür: kullanıcı "Polonya destekleniyor" görür, belgesini
 alır, elindekinin hukuken var olmadığını sonra öğrenir. Polonya `readme.txt`'de
 ancak 2. kademe bitince duyurulur.

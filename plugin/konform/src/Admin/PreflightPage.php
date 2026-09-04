@@ -9,6 +9,8 @@ declare( strict_types = 1 );
 
 namespace Konform\Admin;
 
+use Konform\Invoice\Profile;
+use Konform\Ksef\Settings;
 use Konform\License\Licensing;
 use Konform\Preflight\Finding;
 use Konform\Preflight\Report;
@@ -105,6 +107,30 @@ final class PreflightPage {
 		if ( '' !== $key ) {
 			update_option( HostedValidator::OPTION_KEY, $key );
 		}
+
+		/*
+		 * KSeF jetonu da ayni kurala tabi: bos gonderim mevcut jetonu SILMEZ,
+		 * cunku alan ekranda maskeli. Jetonu silmek isteyenin bunu bilerek
+		 * yapmasi gerekir; kazara kaybetmesi degil.
+		 */
+		$ksef_token = isset( $_POST['konform_ksef_token'] )
+			? sanitize_text_field( wp_unslash( $_POST['konform_ksef_token'] ) )
+			: '';
+
+		if ( '' !== $ksef_token ) {
+			Settings::set_token( $ksef_token );
+		}
+
+		$environment = isset( $_POST['konform_ksef_environment'] )
+			? sanitize_text_field( wp_unslash( $_POST['konform_ksef_environment'] ) )
+			: Settings::ENVIRONMENT_TEST;
+
+		update_option(
+			Settings::OPTION_ENVIRONMENT,
+			Settings::ENVIRONMENT_PRODUCTION === $environment
+				? Settings::ENVIRONMENT_PRODUCTION
+				: Settings::ENVIRONMENT_TEST
+		);
 
 		delete_transient( self::CACHE_KEY );
 
@@ -396,9 +422,74 @@ final class PreflightPage {
 		);
 
 		self::render_validator_settings();
+		self::render_ksef_settings();
 
 		printf( '<button type="submit" class="button button-primary">%s</button>', esc_html__( 'Save', 'konform' ) );
 		echo '</form>';
+	}
+
+	/**
+	 * KSeF ayarlarını çizer.
+	 *
+	 * Yalnizca satici Polonya'da oldugunda gosterilir; baska bir ulkedeki
+	 * magazaya KSeF jetonu sormak, ise yaramayacak bir alani doldurmaya davet
+	 * etmek olurdu.
+	 *
+	 * Jeton, dogrulama anahtari gibi maskeli gosterilir ve bos gonderim mevcut
+	 * degeri silmez.
+	 *
+	 * @return void
+	 */
+	private static function render_ksef_settings(): void {
+		if ( Profile::KSEF !== Profile::for_country( self::seller_country() ) ) {
+			return;
+		}
+
+		printf( '<h3>%s</h3>', esc_html__( 'KSeF (Poland)', 'konform' ) );
+
+		printf(
+			'<p class="description" style="margin-bottom:8px">%s</p>',
+			esc_html__(
+				'An FA(3) invoice does not legally exist until KSeF has accepted it and assigned a number. Konform sends each invoice automatically and records the number.',
+				'konform'
+			)
+		);
+
+		printf(
+			'<p><label for="konform_ksef_token">%1$s</label><br/><input type="password" id="konform_ksef_token" name="konform_ksef_token" value="" class="regular-text" placeholder="%2$s" autocomplete="new-password"/><br/><span class="description">%3$s</span></p>',
+			esc_html__( 'KSeF token', 'konform' ),
+			Settings::has_token()
+				? esc_attr__( 'Saved — leave blank to keep it', 'konform' )
+				: esc_attr__( 'Not set', 'konform' ),
+			esc_html__( 'Generate the token in your KSeF account. It is stored on this site and never shown again.', 'konform' )
+		);
+
+		$production = Settings::is_production();
+
+		printf(
+			'<p><label for="konform_ksef_environment">%1$s</label><br/><select id="konform_ksef_environment" name="konform_ksef_environment"><option value="%2$s"%4$s>%6$s</option><option value="%3$s"%5$s>%7$s</option></select><br/><span class="description">%8$s</span></p>',
+			esc_html__( 'Environment', 'konform' ),
+			esc_attr( Settings::ENVIRONMENT_TEST ),
+			esc_attr( Settings::ENVIRONMENT_PRODUCTION ),
+			$production ? '' : ' selected',
+			$production ? ' selected' : '',
+			esc_html__( 'Test — invoices have no legal effect', 'konform' ),
+			esc_html__( 'Production — invoices are real', 'konform' ),
+			esc_html__( 'Start with Test. Invoices sent to Production are legally issued and cannot be withdrawn.', 'konform' )
+		);
+	}
+
+	/**
+	 * Satıcının ülkesi.
+	 *
+	 * @return string
+	 */
+	private static function seller_country(): string {
+		$base = \function_exists( 'WC' ) && null !== \WC()->countries
+			? (string) \WC()->countries->get_base_country()
+			: '';
+
+		return strtoupper( trim( (string) \apply_filters( 'konform/seller_country', $base ) ) );
 	}
 
 	/**

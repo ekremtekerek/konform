@@ -194,7 +194,7 @@ final class Submission {
 	 * @param string   $session   Oturum referansı.
 	 * @param string   $reference Fatura referansı.
 	 * @return string KSeF numarası; henüz atanmadıysa boş dize.
-	 * @throws \RuntimeException KSeF reddederse.
+	 * @throws RejectedByKsef KSeF belgeyi reddederse; yeniden denemek anlamsızdır.
 	 */
 	private function read_status( Document $document, string $session, string $reference ): string {
 		$status = $this->client->invoice_status( $session, $reference );
@@ -228,8 +228,12 @@ final class Submission {
 
 			$message = sprintf( 'KSeF rejected the invoice: %s', $description );
 
+			/*
+			 * Ret AYRI bir turdur. Gecici hatadan farki, tekrar denemenin
+			 * sonucu degistirmemesi; kuyruk bunu gorunce durur.
+			 */
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Mesaj gunluge gider, HTML'e degil.
-			throw new \RuntimeException( $message );
+			throw new RejectedByKsef( $message );
 		}
 
 		/*

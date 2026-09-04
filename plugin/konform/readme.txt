@@ -1,11 +1,11 @@
 === Konform ===
 Contributors: ekremtekerek
-Tags: woocommerce, e-invoicing, e-rechnung, factur-x, xrechnung
+Tags: woocommerce, e-invoicing, e-rechnung, factur-x, ksef
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.2
 Requires Plugins: woocommerce
-Stable tag: 0.1.0
+Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,7 @@ your country requires:
 
 * **France** — Factur-X: a PDF/A-3 file with the XML embedded inside it
 * **Germany** — XRechnung 3.0 (pure XML)
+* **Poland** — KSeF FA(3), submitted to the national platform
 * **Other countries** — EN 16931 CII
 
 The tax category (standard, reverse charge, intra-community supply, export) is
@@ -73,10 +74,12 @@ something an audit will forgive.
 
 = What this plugin does not do =
 
-**It does not transmit invoices.** Konform produces the document and checks it;
-delivery goes through your own accredited provider — a PDP in France, a Peppol
-access point elsewhere. If you are looking for a plugin that sends invoices to
-a network, this is not it, and you should not buy it expecting that.
+**It does not transmit invoices, except to KSeF.** Konform produces the
+document and checks it; delivery goes through your own accredited provider — a
+PDP in France, a Peppol access point elsewhere. Poland is the exception,
+because there an unsent file is not an invoice at all. If you are looking for a
+plugin that sends invoices to a network, this is not it, and you should not buy
+it expecting that.
 
 It also **does not guarantee legal compliance**. No software can. Whether a
 specific invoice is accepted depends on your registration, your provider and
@@ -114,8 +117,27 @@ an endpoint and licence key.
 * Terms: https://github.com/ekremtekerek/konform/blob/main/docs/TERMS.md
 * Privacy: https://github.com/ekremtekerek/konform/blob/main/docs/PRIVACY.md
 
-The free version performs no external requests other than the language pack
-downloads that WordPress itself makes.
+**KSeF (Poland only, required for Polish stores)**
+
+If your store is based in Poland, each generated FA(3) invoice is submitted to
+the Polish Ministry of Finance's National e-Invoice System (KSeF). This is not
+optional for Polish stores: an FA(3) file has no legal standing until KSeF
+accepts it and assigns a number.
+
+The invoice is encrypted on your site before it leaves it, and sent over HTTPS.
+It contains your invoice data: seller and buyer names, addresses, tax
+identifiers and line items. You choose the environment; the test environment
+has no legal effect.
+
+* Service: KSeF (Krajowy System e-Faktur), Ministerstwo Finansów
+* Test: https://api-test.ksef.mf.gov.pl
+* Production: https://api.ksef.mf.gov.pl
+* Terms: https://ksef.mf.gov.pl
+
+Stores outside Poland never contact KSeF.
+
+The free version performs no other external requests, apart from the language
+pack downloads that WordPress itself makes.
 
 == Installation ==
 
@@ -147,22 +169,37 @@ promise that, and any that does is not being honest with you.
 
 = Does it send my invoices anywhere? =
 
-Not on the free plan. On Pro, only to the validation service described under
-**External services**, and only if you enable it.
+If your store is in Poland, yes: FA(3) invoices are submitted to KSeF, because
+there an invoice does not legally exist until KSeF has accepted it. That is the
+whole point of the Polish system.
+
+Everywhere else, no. On Pro, the document is sent to the validation service
+described under **External services**, and only if you enable it.
 
 = Which countries are supported? =
 
-France (Factur-X, *facture électronique*) and Germany (XRechnung,
-*E-Rechnung*) are fully supported. Other EU countries receive EN 16931 CII
-output, which is the common semantic standard behind both.
+France (Factur-X, *facture électronique*), Germany (XRechnung, *E-Rechnung*)
+and Poland (KSeF FA(3)) are fully supported. Other EU countries receive
+EN 16931 CII output, which is the common semantic standard behind them.
 
-**Poland is not supported**, and it is worth being clear why. KSeF is not just
-a format: an FA(3) invoice does not legally exist until it has been submitted
-to the KSeF platform and given a KSeF number. Producing the file without
-sending it would leave you holding something that looks like an invoice and
-is not one. Since this plugin deliberately does not transmit, supporting
-Poland properly means more than adding a format, and it is not something to
-promise before it is built.
+**Poland** is supported, and it works differently from the others. KSeF is not
+just a format: an FA(3) invoice does not legally exist until KSeF has accepted
+it and assigned a number. So for Poland, Konform does send: it submits each
+invoice to KSeF, waits for the number and records it against the order.
+
+This is the one case where the plugin transmits, because producing the file
+without sending it would leave you holding something that looks like an
+invoice and is not one.
+
+You need a KSeF token from your KSeF account. Start in the test environment —
+invoices sent there have no legal effect — and switch to production when you
+are satisfied.
+
+One limitation to know about: for VAT-exempt sales, KSeF requires the legal
+basis for the exemption, and Konform writes whatever exemption reason your
+order carries into the "other legal basis" field. If you issue exempt
+invoices, have your accountant check that this is the right field for your
+exemption before you rely on it.
 
 = Is the free version actually usable? =
 
@@ -187,6 +224,15 @@ site. See **External services** above.
 
 == Changelog ==
 
+= 0.2.0 =
+* Poland: KSeF FA(3) generation and submission. Invoices are sent to the
+  national platform, the KSeF number is recorded against the order and shown
+  on the order screen.
+* Documents that have been sent are never sent twice, even if a retry happens
+  after a timeout or a crash.
+* Settings for the KSeF token and environment; the test environment is the
+  default and invoices sent there have no legal effect.
+
 = 0.1.0 =
 * First release.
 * Pre-flight check with five rule groups covering seller identity, customer
@@ -198,6 +244,10 @@ site. See **External services** above.
 * Optional validation against the official EN 16931 Schematron rule set.
 
 == Upgrade Notice ==
+
+= 0.2.0 =
+Adds Poland (KSeF). Polish stores must enter a KSeF token; other stores are
+unaffected.
 
 = 0.1.0 =
 First release.
