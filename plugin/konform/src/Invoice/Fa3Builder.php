@@ -12,6 +12,7 @@ namespace Konform\Invoice;
 use Konform\Vendor\Intermedia\Ksef\Fa3\Enums\TKodFormularza;
 use Konform\Vendor\Intermedia\Ksef\Fa3\Enums\TKodKraju;
 use Konform\Vendor\Intermedia\Ksef\Fa3\Enums\TKodWaluty;
+use Konform\Vendor\Intermedia\Ksef\Fa3\Enums\TKodyKrajowUE;
 use Konform\Vendor\Intermedia\Ksef\Fa3\Enums\TRodzajFaktury;
 use Konform\Vendor\Intermedia\Ksef\Fa3\Enums\TStawkaPodatku;
 use Konform\Vendor\Intermedia\Ksef\Fa3\Enums\TWybor1;
@@ -215,20 +216,89 @@ final class Fa3Builder implements DocumentBuilder {
 		$identity        = new TPodmiot2();
 		$identity->nazwa = $buyer->name;
 
-		/*
-		 * NIP yalnizca Polonyali alicida anlamlidir. Yurt disi alicida bu alan
-		 * bos birakilir; yabanci bir KDV numarasini NIP yerine koymak semayi
-		 * gecse bile yanlis veri olur.
-		 */
-		if ( 'PL' === strtoupper( trim( $buyer->country ) ) ) {
-			$identity->nIP = $this->nip( $buyer->vat_number );
-		}
+		$this->identify( $identity, $buyer );
 
 		$block                      = new Podmiot2Type();
 		$block->daneIdentyfikacyjne = $identity;
 		$block->adres               = $this->address( $buyer );
 
 		return $block;
+	}
+
+	/**
+	 * Alıcının kimlik alanını doldurur.
+	 *
+	 * FA(3) alicida DORT SECENEKTEN BIRINI zorunlu tutar ve bunlar birbirinin
+	 * yerine gecmez:
+	 *
+	 *   NIP                -> Polonyali mukellef
+	 *   KodUE + NrVatUE    -> baska bir AB ulkesinde KDV mukellefi
+	 *   KodKraju + NrID    -> AB disi, kimlik numarasi olan
+	 *   BrakID             -> kimlik numarasi yok (tuketici)
+	 *
+	 * Ilk yazimda yalnizca Polonyali alicida NIP yaziliyor, yurt disi alicida
+	 * hicbiri yazilmiyordu. Bu, semanin reddettigi bir belge uretiyordu ve
+	 * YEREL dogrulamada goruluyordu: AB ici teslim, ihracat, tersine yuk ve
+	 * yurt disi hizmet senaryolarinin hicbiri uretilemiyordu. Yurt ici
+	 * satislar calistigi icin fark edilmemisti; kategori matrisi gosterdi.
+	 *
+	 * @param TPodmiot2 $identity Kimlik bloğu.
+	 * @param Party     $buyer    Alıcı.
+	 * @return void
+	 */
+	private function identify( TPodmiot2 $identity, Party $buyer ): void {
+		$country = strtoupper( trim( $buyer->country ) );
+		$vat     = trim( $buyer->vat_number );
+
+		if ( 'PL' === $country ) {
+			if ( '' !== $vat ) {
+				$identity->nIP = $this->nip( $vat );
+
+				return;
+			}
+
+			$identity->brakID = TWybor1::VAL_1;
+
+			return;
+		}
+
+		/*
+		 * AB icindeki mukellef: ulke kodu ve KDV numarasi AYRI alanlara gider,
+		 * numara onekini tasimaz.
+		 */
+		if ( '' !== $vat && Eu::is_member( $country ) ) {
+			$code = TKodyKrajowUE::tryFrom( $country );
+
+			if ( null !== $code ) {
+				$identity->kodUE   = $code;
+				$identity->nrVatUE = $this->strip_prefix( $vat, $country );
+
+				return;
+			}
+		}
+
+		if ( '' !== $vat ) {
+			$identity->kodKraju = $this->country( $country );
+			$identity->nrID     = $vat;
+
+			return;
+		}
+
+		// Kimlik numarasi yok; sema bunu acikca beyan etmeyi istiyor.
+		$identity->brakID = TWybor1::VAL_1;
+	}
+
+	/**
+	 * KDV numarasından ülke önekini atar.
+	 *
+	 * @param string $vat_number KDV numarası.
+	 * @param string $country    Ülke kodu.
+	 * @return string
+	 */
+	private function strip_prefix( string $vat_number, string $country ): string {
+		$value = strtoupper( preg_replace( '/\s+/', '', $vat_number ) ?? '' );
+
+		return str_starts_with( $value, $country ) ? substr( $value, strlen( $country ) ) : $value;
 	}
 
 	/**

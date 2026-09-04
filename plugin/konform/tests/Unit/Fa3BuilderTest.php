@@ -98,6 +98,60 @@ final class Fa3BuilderTest extends TestCase {
 	}
 
 	/**
+	 * Alıcının kimliği ülkesine göre doğru alana yazılır.
+	 *
+	 * FA(3) alicida DORT SECENEKTEN BIRINI zorunlu tutar. Ilk yazimda yalnizca
+	 * Polonyali alicida NIP yaziliyordu; yurt disi alicida hicbiri
+	 * yazilmadigi icin sema belgeyi REDDEDIYORDU ve sinir otesi senaryolarin
+	 * hicbiri uretilemiyordu. Yurt ici satislar calistigi icin fark
+	 * edilmemisti.
+	 *
+	 * @return void
+	 */
+	public function test_the_buyer_identifier_matches_the_buyer_country(): void {
+		$builder = new Fa3Builder();
+
+		// Polonyali mukellef: NIP.
+		$domestic = $builder->build_xml( $this->invoice(), Profile::KSEF );
+		$this->assertStringContainsString( '<NIP>9876543210</NIP>', $domestic );
+
+		// AB icinde mukellef: ulke kodu ve numara AYRI alanlarda, onek yok.
+		$eu = $builder->build_xml(
+			$this->invoice( 'K', 0.0, '', 'DE', 'DE123456789' ),
+			Profile::KSEF
+		);
+
+		$this->assertStringContainsString( '<KodUE>DE</KodUE>', $eu );
+		$this->assertStringContainsString( '<NrVatUE>123456789</NrVatUE>', $eu );
+		$this->assertStringNotContainsString( '<NrVatUE>DE123456789</NrVatUE>', $eu );
+
+		// AB disi: ulke kodu ve serbest kimlik numarasi.
+		$export = $builder->build_xml(
+			$this->invoice( 'G', 0.0, '', 'US', 'US99-1234567' ),
+			Profile::KSEF
+		);
+
+		$this->assertStringContainsString( '<KodKraju>US</KodKraju>', $export );
+		$this->assertStringContainsString( '<NrID>US99-1234567</NrID>', $export );
+	}
+
+	/**
+	 * Kimlik numarası olmayan alıcı için "kimlik yok" beyan edilir.
+	 *
+	 * Sema bunu bos birakmaya izin vermiyor; acikca beyan etmek gerekiyor.
+	 *
+	 * @return void
+	 */
+	public function test_a_buyer_without_a_number_is_declared_as_having_none(): void {
+		$xml = ( new Fa3Builder() )->build_xml(
+			$this->invoice( 'S', 23.0, '', 'PL', '' ),
+			Profile::KSEF
+		);
+
+		$this->assertStringContainsString( '<BrakID>1</BrakID>', $xml );
+	}
+
+	/**
 	 * AB içi teslim, ihracattan ve yurt içi sıfırdan ayrı alana yazılır.
 	 *
 	 * FA(3)'te %0 tek bir alan degildir. AB ici teslimi p1361'e yazmak sema
@@ -187,9 +241,11 @@ final class Fa3BuilderTest extends TestCase {
 	 * @param string $category Vergi kategorisi.
 	 * @param float  $rate     Yüzde olarak oran.
 	 * @param string $exemption_reason Muafiyetin hukuki dayanağı. BT-120.
+	 * @param string $buyer_country    Alıcının ülkesi.
+	 * @param string $buyer_vat        Alıcının KDV numarası.
 	 * @return SemanticInvoice
 	 */
-	private function invoice( string $category = 'S', float $rate = 23.0, string $exemption_reason = '' ): SemanticInvoice {
+	private function invoice( string $category = 'S', float $rate = 23.0, string $exemption_reason = '', string $buyer_country = 'PL', string $buyer_vat = 'PL9876543210' ): SemanticInvoice {
 		$tax = round( 100.0 * $rate / 100, 2 );
 
 		return new SemanticInvoice(
@@ -198,7 +254,7 @@ final class Fa3BuilderTest extends TestCase {
 			'380',
 			'PLN',
 			new Party( 'Sprzedawca Sp. z o.o.', 'PL', 'PL1234567890', 'ul. Mickiewicza 1', 'Warszawa', '00-001', 'sprzedawca@example.test', true ),
-			new Party( 'Nabywca S.A.', 'PL', 'PL9876543210', 'ul. Rynek 1', 'Kraków', '30-001', 'nabywca@example.test', true ),
+			new Party( 'Nabywca S.A.', $buyer_country, $buyer_vat, 'ul. Rynek 1', 'Kraków', '30-001', 'nabywca@example.test', true ),
 			array(
 				new Line( '1', 'Lampa biurkowa', 1.0, 'szt.', 100.0, 100.0, $category, $rate ),
 			),

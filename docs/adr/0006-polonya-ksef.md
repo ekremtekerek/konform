@@ -187,6 +187,38 @@ Sertifika konusunda NIP, `2.5.4.97` (organizationIdentifier) alanına
 gerçek kullanıcılar XAdES kullanmaz, KSeF jetonunu bir kez kendileri üretip
 eklentiye yapıştırır.
 
+### Kategori matrisi: tek senaryo doğrulamak değildir
+
+İlk canlı deneme yalnızca **yurt içi %23** faturasıyla yapıldı ve başarılıydı.
+Buna dayanıp "Polonya doğrulandı" demek yanlış olurdu; `bin/ksef-live-matrix.php`
+bütün vergi kategorilerini denediğinde ortaya çıktı ki **sınır ötesi
+senaryoların hiçbiri belge bile üretemiyordu.**
+
+Sebep: FA(3) alıcıda dört kimlik seçeneğinden birini zorunlu tutuyor —
+`NIP`, `KodUE`+`NrVatUE`, `KodKraju`+`NrID`, ya da açıkça "kimlik yok"
+(`BrakID`). Üretici yalnızca Polonyalı alıcıda NIP yazıyor, yurt dışı alıcıda
+hiçbirini yazmıyordu. Yurt içi satışlar çalıştığı için görünmüyordu.
+
+Düzeltmeden sonra **sekiz senaryonun tamamı** gerçek KSeF tarafından kabul
+edilip tescil edildi:
+
+| Senaryo | FA(3) alanı |
+|---|---|
+| Yurt içi %23 / %8 / %5 | P_13_1 / P_13_2 / P_13_3 |
+| AB içi teslim (WDT) | P_13_6_2 |
+| İhracat | P_13_6_3 |
+| Tersine yük | P_13_10 |
+| Yurt dışı hizmet | P_13_8 |
+| Muafiyet | P_13_7 + P_19C |
+
+**Yeni bir vergi kategorisi ya da alıcı türü eklendiğinde matris yeniden
+çalıştırılmalı.** Yerel şema doğrulaması bu hatayı yakalıyordu — eksik olan
+doğrulama değil, denenen senaryoların kapsamıydı.
+
+Muafiyetin `P_19C`'ye yazılması KSeF tarafından reddedilmedi. Bu riski
+azaltıyor ama ortadan kaldırmıyor: kabul edilmek, alanın hukuken doğru olduğunu
+kanıtlamaz. Aşağıdaki uzman incelemesi notu geçerliliğini koruyor.
+
 ### Canlı denemenin yakaladığı iki hata
 
 Belgelerden yazarken ikisi de görülmemişti:
