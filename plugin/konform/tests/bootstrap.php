@@ -108,3 +108,54 @@ if ( ! function_exists( 'wp_json_encode' ) ) {
 		return json_encode( $data, $options, $depth );
 	}
 }
+
+/*
+ * Seçenek deposu. Gerçek WordPress yerine bellekte tutulur; ayar okuyan
+ * sınıflar böylece veritabanı olmadan sınanabiliyor.
+ */
+$GLOBALS['konform_test_options'] = array();
+
+if ( ! function_exists( 'get_option' ) ) {
+	/**
+	 * Seçenek okur.
+	 *
+	 * @param string $name    Ad.
+	 * @param mixed  $default Varsayılan.
+	 * @return mixed
+	 */
+	function get_option( string $name, $default = false ) {
+		return $GLOBALS['konform_test_options'][ $name ] ?? $default;
+	}
+}
+
+if ( ! function_exists( 'update_option' ) ) {
+	/**
+	 * Seçenek yazar.
+	 *
+	 * @param string $name     Ad.
+	 * @param mixed  $value    Değer.
+	 * @param mixed  $autoload Otomatik yükleme.
+	 * @return bool
+	 */
+	function update_option( string $name, $value, $autoload = null ): bool {
+		unset( $autoload );
+
+		$GLOBALS['konform_test_options'][ $name ] = $value;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_option' ) ) {
+	/**
+	 * Seçenek siler.
+	 *
+	 * @param string $name Ad.
+	 * @return bool
+	 */
+	function delete_option( string $name ): bool {
+		unset( $GLOBALS['konform_test_options'][ $name ] );
+
+		return true;
+	}
+}

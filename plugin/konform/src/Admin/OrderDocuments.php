@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace Konform\Admin;
 
 use Konform\Invoice\Generator;
+use Konform\Invoice\Profile;
 use Konform\Storage\Archive;
 use Konform\Storage\AuditLog;
 use Konform\Storage\Document;
@@ -124,7 +125,7 @@ final class OrderDocuments {
 			$intact = $document->is_intact();
 
 			printf(
-				'<li style="margin-bottom:8px"><a href="%1$s"><strong>%2$s</strong></a><br/><span class="description">%3$s</span>%4$s</li>',
+				'<li style="margin-bottom:8px"><a href="%1$s"><strong>%2$s</strong></a><br/><span class="description">%3$s</span>%4$s%5$s</li>',
 				esc_url( $document->download_url() ),
 				esc_html(
 					sprintf(
@@ -143,11 +144,40 @@ final class OrderDocuments {
 				),
 				$intact
 					? ''
-					: '<br/><span style="color:#a4261d">' . esc_html__( 'File missing or modified', 'konform' ) . '</span>'
+					: '<br/><span style="color:#a4261d">' . esc_html__( 'File missing or modified', 'konform' ) . '</span>',
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Metot kendi ciktisini esc_html ile kaciyor.
+				self::registration_note( $document )
 			);
 		}
 
 		echo '</ul>';
+	}
+
+	/**
+	 * KSeF tescil durumunu çizer.
+	 *
+	 * Yalnizca Polonya belgeleri icin anlamli. FA(3) dosyasi KSeF numarasi
+	 * alana kadar hukuken var olmaz, bu yuzden numarasi olmayan bir belge
+	 * "uretildi" degil "henuz tescil edilmedi" diye gosteriliyor: kullanici
+	 * elindekinin fatura olmadigini indirmeden once gormeli.
+	 *
+	 * @param Document $document Belge.
+	 * @return string
+	 */
+	private static function registration_note( Document $document ): string {
+		if ( Profile::KSEF->value !== $document->profile ) {
+			return '';
+		}
+
+		if ( $document->is_registered() ) {
+			return '<br/><span class="description">'
+				. esc_html__( 'KSeF number:', 'konform' ) . ' <code>'
+				. esc_html( $document->ksef_number ) . '</code></span>';
+		}
+
+		return '<br/><span style="color:#996800">'
+			. esc_html__( 'Not registered with KSeF yet — this file is not a legal invoice.', 'konform' )
+			. '</span>';
 	}
 
 	/**

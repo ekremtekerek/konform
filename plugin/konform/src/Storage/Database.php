@@ -23,7 +23,7 @@ final class Database {
 	/**
 	 * Şema sürümü. Değiştiğinde tablolar güncellenir.
 	 */
-	public const VERSION = '1';
+	public const VERSION = '2';
 
 	/**
 	 * Şema sürümünün saklandığı seçenek.
@@ -96,11 +96,13 @@ final class Database {
 				file_hash char(64) NOT NULL DEFAULT '',
 				byte_size bigint(20) unsigned NOT NULL DEFAULT 0,
 				version smallint(5) unsigned NOT NULL DEFAULT 1,
+				ksef_number varchar(64) NOT NULL DEFAULT '',
 				created_at datetime NOT NULL,
 				created_by bigint(20) unsigned NOT NULL DEFAULT 0,
 				PRIMARY KEY  (id),
 				KEY order_id (order_id),
 				KEY invoice_number (invoice_number),
+				KEY ksef_number (ksef_number),
 				KEY created_at (created_at)
 			) {$charset};"
 		);

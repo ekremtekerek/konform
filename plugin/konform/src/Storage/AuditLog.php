@@ -58,6 +58,26 @@ final class AuditLog {
 	public const EVENT_PRUNED = 'pruned';
 
 	/**
+	 * KSeF'e gönderildi; henüz numara alınmadı.
+	 *
+	 * Gonderim ile tescil AYRI olaylardir ve aralari dakikalar surebilir.
+	 * Ikisini tek olayda birlestirmek, arada kalan faturayi gorunmez yapardi:
+	 * gonderilmis ama kabul edilmemis bir belge, hic gonderilmemis gibi
+	 * gorunurdu.
+	 */
+	public const EVENT_KSEF_SENT = 'ksef_sent';
+
+	/**
+	 * KSeF numarası alındı; fatura hukuken var oldu.
+	 */
+	public const EVENT_KSEF_REGISTERED = 'ksef_registered';
+
+	/**
+	 * KSeF belgeyi reddetti.
+	 */
+	public const EVENT_KSEF_REJECTED = 'ksef_rejected';
+
+	/**
 	 * Olay kaydeder.
 	 *
 	 * @param string $event       Olay türü.
@@ -125,6 +145,9 @@ final class AuditLog {
 			self::EVENT_INVALID    => __( 'Rejected by official validation', 'konform' ),
 			self::EVENT_EMAILED    => __( 'Attached to customer email', 'konform' ),
 			self::EVENT_PRUNED     => __( 'Removed after the retention period', 'konform' ),
+			self::EVENT_KSEF_SENT       => __( 'Sent to KSeF', 'konform' ),
+			self::EVENT_KSEF_REGISTERED => __( 'Registered by KSeF', 'konform' ),
+			self::EVENT_KSEF_REJECTED   => __( 'Rejected by KSeF', 'konform' ),
 			default                => $event,
 		};
 	}

@@ -42,6 +42,9 @@ final class Uninstall {
 		'konform_retention_prune_enabled',
 		'konform_validator_endpoint',
 		'konform_validator_key',
+		// KSeF jetonu bir kimlik bilgisidir; sitede unutulmus jeton birakilmaz.
+		'konform_ksef_token',
+		'konform_ksef_environment',
 	);
 
 	/**

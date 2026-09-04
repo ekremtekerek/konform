@@ -36,6 +36,7 @@ final class Document {
 	 * @param int    $version        Kaçıncı üretim.
 	 * @param string $created_at     Oluşturulma zamanı (MySQL biçimi).
 	 * @param int    $created_by     Oluşturan kullanıcı; kuyrukta 0.
+	 * @param string $ksef_number    KSeF numarası; gönderilmemişse boş.
 	 */
 	public function __construct(
 		public readonly int $id,
@@ -50,7 +51,21 @@ final class Document {
 		public readonly int $version,
 		public readonly string $created_at,
 		public readonly int $created_by,
+		public readonly string $ksef_number = '',
 	) {}
+
+	/**
+	 * Belge KSeF'e gönderilip numara aldı mı.
+	 *
+	 * Polonya icin belirleyici soru budur: FA(3) dosyasi KSeF numarasi alana
+	 * kadar hukuken var olmaz. Dosyanin diskte durmasi tek basina bir sey
+	 * ifade etmez.
+	 *
+	 * @return bool
+	 */
+	public function is_registered(): bool {
+		return '' !== $this->ksef_number;
+	}
 
 	/**
 	 * Veritabanı satırından nesne kurar.
@@ -71,7 +86,8 @@ final class Document {
 			(int) ( $row['byte_size'] ?? 0 ),
 			(int) ( $row['version'] ?? 1 ),
 			(string) ( $row['created_at'] ?? '' ),
-			(int) ( $row['created_by'] ?? 0 )
+			(int) ( $row['created_by'] ?? 0 ),
+			(string) ( $row['ksef_number'] ?? '' )
 		);
 	}
 

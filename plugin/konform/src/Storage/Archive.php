@@ -168,6 +168,65 @@ final class Archive {
 	}
 
 	/**
+	 * Belgeye KSeF numarasını işler.
+	 *
+	 * KSeF numarasi KALICIDIR ve belgeye bir kez atanir. Var olanin uzerine
+	 * BASKA bir numara yazmak veri bozulmasidir: elde iki numara olur, hangisi
+	 * gecerli bilinemez ve denetimde hesabi verilemez. Bu yuzden farkli bir
+	 * numara yazma girisimi sessizce yutulmuyor.
+	 *
+	 * Ayni numaranin tekrar yazilmasi zararsizdir; kuyruk yeniden denerken
+	 * olabilir.
+	 *
+	 * @param int    $document_id Belge kimliği.
+	 * @param string $number      KSeF numarası.
+	 * @return bool İşlendiyse true.
+	 * @throws \RuntimeException Belgede farklı bir numara varsa.
+	 */
+	public static function record_ksef_number( int $document_id, string $number ): bool {
+		global $wpdb;
+
+		$number = trim( $number );
+
+		if ( '' === $number ) {
+			return false;
+		}
+
+		$document = self::find( $document_id );
+
+		if ( null === $document ) {
+			return false;
+		}
+
+		if ( $document->is_registered() ) {
+			if ( $document->ksef_number === $number ) {
+				return true;
+			}
+
+			$message = sprintf(
+				'Document %d already carries KSeF number %s; refusing to overwrite it with %s.',
+				$document_id,
+				$document->ksef_number,
+				$number
+			);
+
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Mesaj gunluge gider, HTML'e degil.
+			throw new \RuntimeException( $message );
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$updated = $wpdb->update(
+			Database::documents_table(),
+			array( 'ksef_number' => $number ),
+			array( 'id' => $document_id ),
+			array( '%s' ),
+			array( '%d' )
+		);
+
+		return false !== $updated;
+	}
+
+	/**
 	 * Kimliğe göre belge getirir.
 	 *
 	 * @param int $id Belge kimliği.

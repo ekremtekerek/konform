@@ -75,8 +75,16 @@ yapabiliyor. Eklenti PHP 8.2 istediği için bir çözüm gerekti; phpseclib
 2. **KSeF API istemcisi** — ✅ **yapıldı ve canlı doğrulandı.** Yetkilendirme,
    oturum açma, şifreli gönderim, durum sorgulama. `api-test` ortamına gerçek
    bir FA(3) faturası gönderildi ve KSeF numarası alındı.
-3. **Saklama ve arayüz** — KSeF numarasının arşive ve denetim kaydına
-   işlenmesi, token ayarı, sipariş ekranında durum.
+3. **Saklama ve arayüz** — 🔶 **büyük kısmı yapıldı.** `documents` tablosunda
+   `ksef_number` sütunu (şema sürümü 2), `Archive::record_ksef_number()`, üç
+   yeni denetim olayı, `Ksef\Settings`, `Ksef\Submission` ve sipariş ekranında
+   tescil durumu.
+
+   **Ayar ekranı bilerek eklenmedi.** Jeton alanını göstermek, gönderim
+   üretim akışına bağlı değilken Polonya'yı yarı yarıya kullanıcıya açardı:
+   kullanıcı jetonunu girer, hiçbir şey olmaz. Alan, 4. kademe bitip Polonya
+   duyurulabilir hâle geldiğinde eklenecek. `Settings` sınıfı hazır ve
+   sınanmış durumda.
 4. **Kuyruk ve yeniden gönderim** — reddedilen belge, mükerrer gönderimin
    önlenmesi.
 
