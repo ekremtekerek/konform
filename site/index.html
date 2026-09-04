@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Konform tells you which of your WooCommerce orders would be rejected as e-invoices, before you issue them. Factur-X for France, XRechnung for Germany, EN 16931 CII elsewhere.">
+<meta name="description" content="Konform tells you which of your WooCommerce orders would be rejected as e-invoices, before you issue them. Factur-X for France, XRechnung for Germany, KSeF for Poland, EN 16931 CII elsewhere.">
 <meta name="color-scheme" content="light dark">
 <title>Konform</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -203,6 +203,7 @@
     <ul>
       <li><strong>France</strong> — Factur-X: a PDF/A-3 file with the XML embedded inside it</li>
       <li><strong>Germany</strong> — XRechnung 3.0, pure XML</li>
+      <li><strong>Poland</strong> — KSeF FA(3), submitted to the national platform</li>
       <li><strong>Elsewhere in the EU</strong> — EN 16931 CII</li>
     </ul>
     <p>The tax category — standard, reverse charge, intra-community supply, export —
@@ -217,11 +218,13 @@
   <section>
     <h2>What it does not do</h2>
     <div class="boundary">
-      <p><strong>It does not transmit invoices.</strong> Konform produces the document
-        and checks it; delivery goes through your own accredited provider — a PDP in
-        France, a Peppol access point elsewhere. If you are looking for a plugin that
-        sends invoices to a network, this is not it, and you should not buy it
-        expecting that.</p>
+      <p><strong>It does not transmit invoices, except to KSeF.</strong> Konform
+        produces the document and checks it; delivery goes through your own accredited
+        provider — a PDP in France, a Peppol access point elsewhere. Poland is the
+        exception, because there an invoice does not legally exist until KSeF has
+        accepted it, so Polish stores get submission built in. If you are looking for
+        a plugin that sends invoices to a network everywhere else, this is not it, and
+        you should not buy it expecting that.</p>
       <p><strong>It does not guarantee legal compliance.</strong> No software can.
         Whether a specific invoice is accepted depends on your registration, your
         provider and rules that change over time.</p>

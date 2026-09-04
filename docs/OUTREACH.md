@@ -54,8 +54,10 @@ demoyu göstermek. Fiyattan söz eden tek cümle bile paylaşımı reklama çevi
 > It also generates Factur-X for France and XRechnung for Germany, but the
 > pre-flight report is the part I actually care about.
 >
-> What it does not do: it does not transmit invoices to a network. That still
-> goes through your own provider.
+> What it does not do: outside Poland it does not transmit invoices to a
+> network — that still goes through your own provider. Poland is the
+> exception: there an invoice does not legally exist until KSeF has accepted
+> it, so for Polish stores the plugin submits to KSeF and records the number.
 >
 > Happy to hear where the checks are wrong — that is the useful feedback for
 > me right now.
@@ -106,7 +108,8 @@ Hedef: WooCommerce/WordPress Fransız grupları, e-ticaret forumları.
 > Démo dans le navigateur, rien à installer : [lien]
 >
 > Elle génère aussi du Factur-X (PDF/A-3 avec le XML intégré). En revanche elle
-> **ne transmet pas** les factures : cela passe toujours par votre PDP.
+> **ne transmet pas** les factures en France : cela passe toujours par votre
+> PDP. (La Pologne fait exception, le KSeF l'imposant.)
 >
 > Je suis preneur de retours, surtout si un contrôle vous semble faux.
 
@@ -136,8 +139,9 @@ Hedef: WooCommerce/WordPress Alman grupları, e-ticaret forumları.
 >
 > Demo im Browser, nichts zu installieren: [Link]
 >
-> Es erzeugt auch XRechnung 3.0. **Versendet** wird nichts — das läuft weiter
-> über Ihren eigenen Dienstleister.
+> Es erzeugt auch XRechnung 3.0. In Deutschland **versendet** es nichts — das
+> läuft weiter über Ihren eigenen Dienstleister. (Polen ist die Ausnahme: dort
+> verlangt KSeF die Übermittlung.)
 >
 > Über Rückmeldungen freue ich mich, besonders wenn eine Prüfung falsch liegt.
 
