@@ -161,6 +161,20 @@ docker compose run --rm wpcli wp plugin check konform \
 Check bunu **hata** sayar. Güncel sürüm:
 `curl -s https://api.wordpress.org/core/version-check/1.7/`
 
+**Plugin Check geliştirme ağacına bakar, pakete değil.** Bu fark bir hataya yol
+açabiliyor: kökteki `phpunit.xml.dist` için `application_detected` hatası verir,
+oysa o dosya `build.sh` tarafından paketten dışlanır. Karar vermeden önce
+pakete bakın:
+
+```sh
+unzip -l build/konform-*.zip | grep -E 'konform/phpunit|konform/tests/'
+# ciktisi bos olmali
+```
+
+Önekli paketlerin içindeki `phpunit.xml.dist` dosyaları (üç tane) pakette
+kalır ve sorun değildir; 0.1.0 bunlarla birlikte WordPress.org taramasını
+geçti.
+
 ---
 
 ## 4. Freemius'a yükle
