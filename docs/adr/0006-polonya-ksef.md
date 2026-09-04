@@ -122,6 +122,36 @@ gecikmeyle yeniden zamanlanıyor; en fazla 20 kez, yani yaklaşık 40 dakika.
 Sınır dolduğunda vazgeçmek belgeyi kaybetmek değil: referans arşivde,
 gönderim olayı denetim kaydında duruyor. Sonradan sorgulanabilir.
 
+## WordPress'te uçtan uca sınav: iki yeşil doğrulama arasında kalan yol
+
+Polonya açıldıktan sonra eklenti WordPress'te gerçek bir siparişle sınandı ve
+**hiçbir fatura gönderemediği** ortaya çıktı:
+
+```
+KSeF rejected the authentication:
+Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu
+```
+
+Sebep zaman damgasıydı. KSeF meydan okumada onu **kesirli saniyeli** ISO-8601
+dizgesi olarak döndürüyor (`2026-09-04T06:08:10.9389841+00:00`) ve
+`strtotime()` kesirleri atıp saniyeye yuvarlıyordu. İmzalanan dizge
+`{jeton}|{milisaniye}` olduğundan, yuvarlanmış değer reddediliyor — üstelik
+mesaj "hatalı jeton" diyor, yani sebebi göstermiyor.
+
+`DateTimeImmutable::format('Uv')` ikisini birlikte veriyor.
+
+**Bunun neden daha önce görülmediği, kaydedilmeye değer.** O sırada iki
+doğrulama da yeşildi ve ikisi de aynı yolu atlıyordu:
+
+| Doğrulama | Neden kaçırdı |
+|---|---|
+| 85 birim test | Sahte yanıtlarda zaman damgası **tam sayı** veriliyordu; gerçek biçim hiç görülmedi |
+| Canlı KSeF denemeleri | **XAdES** yolunu kullanıyordu; jeton yolu ise kullanıcıların tek yolu |
+
+Ders: bir yolu iki farklı katmanda doğrulamak, o yolun *aynı* varsayımla
+sınandığı anlamına gelebiliyor. Kullanıcının gerçekten izlediği yol, gerçek
+verisiyle, en az bir kez baştan sona koşulmalı.
+
 ## Polonya açıldı
 
 Dört kademe bitince Polonya kullanıcıya açıldı (0.2.0):

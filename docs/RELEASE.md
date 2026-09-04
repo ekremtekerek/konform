@@ -298,6 +298,43 @@ Ayrımın anlamı: kullanıcı **ayarlarını** silmek istedi, **faturalarını*
 değil. Arşiv dosyaları kaldığına göre bütünlüklerini doğrulayan anahtar da
 kalmalıdır.
 
+---
+
+## Polonya: gerçek gönderim sınavı
+
+**Bu da atlanamaz** ve sebebi somut: 0.2.0 hazırlanırken 85 birim test
+geçiyordu, paket doğrulanmıştı ve sekiz vergi senaryosu canlı KSeF'e karşı
+çalışmıştı — eklenti yine de WordPress'te **hiçbir fatura gönderemiyordu.**
+
+Sebep, iki doğrulamanın da aynı yolu atlamasıydı: birim testler zaman
+damgasını tam sayı olarak sahteliyordu, canlı denemeler ise XAdES yolunu
+kullanıyordu. Kullanıcının gerçekten izlediği yol (KSeF jetonu) hiç
+koşulmamıştı.
+
+Yerel WordPress'te, `api-test` ortamına karşı:
+
+1. Mağazayı geçici olarak Polonya'ya alın; KDV numarasını test NIP'iyle
+   eşleştirin.
+2. Geçerli bir KSeF jetonu girin ve ortamı **test** bırakın.
+3. Polonyalı alıcılı bir sipariş oluşturup `Generator::generate()` çalıştırın.
+4. Kuyruğu koşturun:
+   `wp action-scheduler run --hooks=konform_submit_to_ksef`
+5. Denetim izini okuyun. Beklenen sıra:
+
+```
+generated        KSeF FA(3), ...
+queued           Queued for KSeF submission.
+ksef_sent        KSeF reference ...
+ksef_registered  KSeF number ...
+```
+
+`ksef_registered` yoksa sürüm çıkarılmaz. Numara gelmemesi tek başına hata
+değildir (KSeF gecikebilir) ama `failed` satırı varsa sebebi çözülmelidir.
+
+Sınav bitince **mağaza ülkesini ve KDV numarasını geri alın, jetonu silin.**
+Jeton bir kimlik bilgisidir; geliştirme kurulumunda unutulmuş bir jeton
+bırakmayın.
+
 Windows'ta konteynere yol geçirirken `MSYS_NO_PATHCONV=1` gerekir; yoksa
 Git Bash `/pkg/...` yolunu Windows yoluna çevirir ve WP-CLI "Invalid plugin
 slug" der.
