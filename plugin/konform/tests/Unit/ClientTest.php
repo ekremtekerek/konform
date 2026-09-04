@@ -52,7 +52,16 @@ final class ClientTest extends TestCase {
 
 		$details           = \openssl_pkey_get_details( $resource );
 		$this->certificate = $details['key'];
+
+		\openssl_pkey_export( $resource, $this->private_key );
 	}
+
+	/**
+	 * Test özel anahtarı (PEM).
+	 *
+	 * @var string
+	 */
+	private string $private_key = '';
 
 	/**
 	 * Yetkilendirme belgelenmiş üç adımı sırayla yapar.
@@ -92,6 +101,67 @@ final class ClientTest extends TestCase {
 
 		// Sarmalanmis anahtar 2048 bitlik RSA icin 256 bayttir.
 		$this->assertSame( 256, strlen( (string) base64_decode( $submission['encryptedToken'], true ) ) );
+	}
+
+	/**
+	 * Zaman damgasının milisaniyeleri korunur.
+	 *
+	 * KSeF meydan okumada zaman damgasini KESIRLI SANIYELI bir ISO-8601
+	 * dizgesi olarak donduruyor. Kesirler atilip saniyeye yuvarlanirsa KSeF
+	 * imzayi kabul etmiyor ve "hatali jeton" diye reddediyor — mesajdan sebep
+	 * anlasilmiyor.
+	 *
+	 * Bu once fark edilmedi cunku sahte yanitlarda zaman damgasi tam sayi
+	 * veriliyordu; gercek bicim ancak WordPress'te uctan uca sinavda ortaya
+	 * cikti. Test artik gercek bicimi kullaniyor ve sifrelenmis jetonu cozup
+	 * milisaniyelerin yerinde oldugunu dogruluyor.
+	 *
+	 * @return void
+	 */
+	public function test_the_challenge_timestamp_keeps_its_milliseconds(): void {
+		$transport = new RecordingTransport(
+			array(
+				new Response(
+					200,
+					(string) wp_json_encode(
+						array(
+							'challenge' => 'C-1',
+							'timestamp' => '2026-09-04T06:08:10.938+00:00',
+						)
+					)
+				),
+				new Response(
+					200,
+					(string) wp_json_encode(
+						array(
+							'authenticationToken' => array( 'token' => 'AUTH-1' ),
+							'referenceNumber'     => 'REF-1',
+						)
+					)
+				),
+				new Response( 200, (string) wp_json_encode( array( 'status' => array( 'code' => 200 ) ) ) ),
+				new Response( 200, (string) wp_json_encode( array( 'accessToken' => array( 'token' => 'ACCESS-1' ) ) ) ),
+			)
+		);
+
+		( new Client( $transport, Client::TEST_BASE_URL ) )
+			->authenticate( 'JETON', '1234567890', $this->certificate );
+
+		$encrypted = (string) base64_decode( $transport->requests[1]['body']['encryptedToken'], true );
+
+		$plain = '';
+		$this->assertTrue(
+			\openssl_private_decrypt( $encrypted, $plain, $this->private_key, OPENSSL_PKCS1_OAEP_PADDING, 'sha256' ),
+			'Sarmalanan jeton çözülemedi.'
+		);
+
+		$parts = explode( '|', $plain );
+
+		$this->assertSame( 'JETON', $parts[0] );
+
+		// Milisaniye korunmus olmali: saniyeye yuvarlansaydi "000" ile biterdi.
+		$this->assertSame( '938', substr( $parts[1], -3 ), 'Milisaniyeler kaybolmuş.' );
+		$this->assertSame( 13, strlen( $parts[1] ), 'Unix milisaniye 13 hane olmalı.' );
 	}
 
 	/**

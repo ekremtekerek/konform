@@ -493,10 +493,22 @@ final class Client {
 		}
 
 		if ( is_string( $timestamp ) ) {
-			$parsed = strtotime( $timestamp );
-
-			if ( false !== $parsed ) {
-				return (string) ( $parsed * 1000 );
+			try {
+				/*
+				 * KSeF zaman damgasini KESIRLI SANIYELI bir ISO-8601 dizgesi
+				 * olarak donduruyor: "2026-09-04T06:08:10.9389841+00:00".
+				 *
+				 * strtotime() kesirleri atar ve saniyeye yuvarlar. Boyle
+				 * uretilen deger KSeF tarafindan kabul EDILMIYOR; dogrulama
+				 * "hatali jeton" diye reddediliyor ve sebep mesajdan
+				 * anlasilmiyor. Uctan uca sinav olmasa gorulmezdi.
+				 *
+				 * 'Uv' saniye ve milisaniyeyi birlikte verir; istenen tam
+				 * olarak budur.
+				 */
+				return ( new \DateTimeImmutable( $timestamp ) )->format( 'Uv' );
+			} catch ( \Exception $error ) {
+				unset( $error );
 			}
 		}
 
